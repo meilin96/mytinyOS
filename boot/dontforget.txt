@@ -1,0 +1,2 @@
+dd if=./mbr.bin of=~/bochs/hd60M.img bs=512 count=1 conv=notrunc //write .bin into virtual disk
+bin/bximage -hd -mode="flat" -size=60 -q hd60M.img //create virtual disk
