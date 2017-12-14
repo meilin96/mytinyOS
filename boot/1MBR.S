@@ -27,7 +27,7 @@ SECTION MBR vstart=0x7c00
    mov byte [gs:0x06],'B'
    mov byte [gs:0x07],0xA4
 
-   mov byte [gs:0x08],'B'
+   mov byte [gs:0x08],'R'
    mov byte [gs:0x09],0xA4
 
    jmp $
