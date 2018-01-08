@@ -14,5 +14,5 @@ gcc -c -o xxx.o xxx.c && ld main.o -Ttext 0xc0001500 -e main -o kernel.bin && dd
 
 C6
 nasm -f -o .o .S
-gcc -I lib/kernel/ -c -o kernel/main.o kernel/main.c
+gcc -m32 -I lib/kernel/ -c -o kernel/main.o kernel/main.c
 ld -m elf_i386 -Ttext 0xc0001500 -e main -o .bin .o .o
