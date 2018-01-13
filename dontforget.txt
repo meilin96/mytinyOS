@@ -12,7 +12,7 @@ ld xxx.o -Ttext 0xc001500 -e main -o xxx.bin //link .o files and give a virtul a
 
 gcc -c -o xxx.o xxx.c && ld main.o -Ttext 0xc0001500 -e main -o kernel.bin && dd if=kernel.bin of=/your_path/hd60M.img bs=512 count=200 seek=9 conv=notrunc
 
-C6
+C6 P274
 nasm -f -o .o .S
 gcc -m32 -I lib/kernel/ -c -o kernel/main.o kernel/main.c
 ld -m elf_i386 -Ttext 0xc0001500 -e main -o .bin .o .o
