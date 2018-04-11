@@ -11,6 +11,9 @@
 
 #define IDT_DESC_CNT 0x21      // 目前总共支持的中断数
 
+#define EFLAGS_IF 0x00000200
+#define GET_EFLAGS(EFLAG_VAR) asm volatile("pushfl; popl %0": "=g" (EFLAG_VAR))
+
 /*中断门描述符结构体*/
 struct gate_desc {
    uint16_t    func_offset_low_word;
@@ -125,3 +128,34 @@ void idt_init() {
    put_str("idt_init done\n");
 }
 
+enum intr_status intr_enable(){
+    enum intr_status old_status;
+    if (INTR_ON == intr_get_status()){
+        old_status = INTR_ON;
+    }else{
+        old_status = INTR_OFF;
+        asm volatile("sti");
+    }
+    return old_status;
+}
+
+enum intr_status intr_disable(){
+    enum intr_status old_status;
+    if (INTR_ON == intr_get_status()){
+        old_status = INTR_ON;
+        asm volatile("cli":::"memory");
+    }else{
+        old_status = INTR_OFF;
+    }
+    return old_status;
+}
+
+enum intr_status intr_set_status(enum intr_status status){
+    return (status & INTR_ON)? intr_enable() : intr_disable();
+}
+
+enum intr_status intr_get_status(){
+    uint32_t eflags = 0;
+    GET_EFLAGS(eflags);
+    return (EFLAGS_IF & eflags)? INTR_ON : INTR_OFF; 
+}
