@@ -55,7 +55,7 @@ char* strchr(const char* string, const uint8_t ch){
     ASSERT(string != NULL);
     while(string != '\0'){
         if(*string == ch){
-            return string;
+            return (char *)string;
         }
         string++;
     }
@@ -83,7 +83,7 @@ char* strrchr(const char* string, const uint8_t ch){
         }
         string++;
     }
-    return (char*)last_char*;
+    return (char*)last_char;
 }
 
 //将字符串src拼接到dst后，返回拼接的地址
