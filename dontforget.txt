@@ -1,5 +1,5 @@
 dd if=./mbr.bin of=~/bochs/hd60M.img bs=512 count=1 conv=notrunc //write .bin into virtual disk
-dd if=./mbr.bin of=~/bochs/hd60M.img bs=512 count=200 seek=9 conv=notrunc //write .bin into virtual disk
+dd if=./build/kernel.bin of=~/bochs/hd60M.img bs=512 count=200 seek=9 conv=notrunc //write .bin into virtual disk
 
 bin/bximage -hd -mode="flat" -size=60 -q hd60M.img //create virtual disk
 nasm -o mbr.bin mbr.S
