@@ -39,7 +39,7 @@ static void* vaddr_pool_apply(enum pool_flags pf, uint32_t pg_cnt){
         }
         vaddr_start = kernel_vaddr.vaddr_start + bit_idx_start * PG_SIZE;
     }else{
-    //用户内存池
+    //用户内存池 to be continued
     }
     return (void*)vaddr_start;
 }
@@ -112,18 +112,21 @@ void* malloc_pages(enum pool_flags pf, uint32_t pg_cnt){
         void* page_phyaddr = phy_page_alloc(mem_pool);
         if (page_phyaddr == NULL){
             //失败要把所有申请的虚拟页和物理页回滚，to be continued
+            ASSERT(page_phyaddr);
+            return NULL;
         }
         page_table_add((void*)vaddr, page_phyaddr);
         vaddr += PG_SIZE;
     }
+
     return vaddr_start;
 }
 
 //在内核物理内存池中申请pg_cnt页内存，成功则返回虚拟地址，失败则返回NULL
-void* kppool_apply(uint32_t pg_cnt){
+void* get_kernel_pages(uint32_t pg_cnt){
     void* vaddr = malloc_pages(PF_KERNEL, pg_cnt);
     if(vaddr != NULL){
-        memset(vaddr, 0, 4096 * PG_SIZE);
+        memset(vaddr, 0, pg_cnt * PG_SIZE);
     }
     return vaddr;
 }
