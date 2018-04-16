@@ -2,6 +2,8 @@
 #include "stdint.h"
 #include "print.h"
 #include "bitmap.h"
+#include "debug.h"
+#include "string.h"
 #define PG_SIZE 4096
 
 #define MEM_BITMAP_BASE 0xc009a000 //P384
@@ -25,7 +27,7 @@ Pool kernel_pool, user_pool;
 
 //在虚拟内存池中申请连续的pg_cnt个虚拟页
 //成功返回虚拟页的起始地址，否则返回NULL
-static void* vaddr_get(enum pool_flags pf, uint32_t pg_cnt){
+static void* vaddr_pool_apply(enum pool_flags pf, uint32_t pg_cnt){
     int vaddr_start = 0, bit_idx_start = -1;
     uint32_t cnt = 0;
     if(pf == PF_KERNEL){
@@ -56,12 +58,74 @@ uint32_t* pde_ptr(uint32_t vaddr){
 //**************
 
 //在m_pool指向的物理内存池中分配一个物理页，成功发回页的物理地址，否则返回NULL
-static void* palloc(Pool* m_pool){
+static void* phy_page_alloc(Pool* m_pool){
     int bit_idx = bitmap_scan(&m_pool->pool_bitmap, 1);
     if(bit_idx == -1) return NULL;
     bitmap_set(&m_pool->pool_bitmap, bit_idx, 1);
     uint32_t page_phyaddr = (bit_idx * PG_SIZE) + m_pool->phy_addr_start;
     return (void*)page_phyaddr;
+}
+//在页表中添加与物理地址对应的pte
+static void page_table_add(void* _vaddr, void* _page_phyaddr){
+    uint32_t vaddr = (uint32_t)_vaddr;
+    uint32_t page_phyaddr = (uint32_t)_page_phyaddr;
+    uint32_t* pde = pde_ptr(vaddr);
+    uint32_t* pte = pte_ptr(vaddr);
+
+    //先判断对应的pde是否存在
+    if (*pde & 0x00000001){
+        ASSERT(!(*pte & 0x00000001));//如果对应pte已经存在则报错
+        if(!(*pte & 0x00000001)){
+            *pte = page_phyaddr | PG_US_U | PG_RW_W | PG_P_1;
+        }else{
+            //PANIC("pte repeat");
+            //*pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);
+        }
+    }else{//如果对应的pde不存在，则先分配一个物理页作为页表
+        uint32_t pde_phyaddr = (uint32_t)phy_page_alloc(&kernel_pool);
+        *pde = pde_phyaddr | PG_US_U | PG_RW_W | PG_P_1;
+        //然后再把页表内容清零;
+        memset((void*)((int)pte & 0xfffff000), 0, PG_SIZE);
+
+        ASSERT(!(*pte & 0x00000001));//pte已存在报错 
+        *pte = page_phyaddr | PG_US_U | PG_RW_W | PG_P_1;
+    }
+}
+
+//在pf指定的内存池中分配pg_cnt个页表,成功返回起始虚拟地址
+void* malloc_pages(enum pool_flags pf, uint32_t pg_cnt){
+    //根据内存池限制申请的内存页数大小(15MB / 4k = 3840)
+    ASSERT(pg_cnt > 0 && pg_cnt < 3840);
+    /*
+    1.vaddr_pool_apply 在虚拟内存池中申请分配内存页。
+    2.phy_page_alloc 分配物理内存
+    3.page_table_add 在添加页表中添加映射
+    */
+    void* vaddr_start = vaddr_pool_apply(pf, pg_cnt);
+    if (vaddr_start == NULL)
+        return NULL;
+
+    uint32_t vaddr = (uint32_t)vaddr_start, cnt = pg_cnt;
+    struct pool* mem_pool = pf & PF_KERNEL ? &kernel_pool : &user_pool;
+
+    while(cnt--){
+        void* page_phyaddr = phy_page_alloc(mem_pool);
+        if (page_phyaddr == NULL){
+            //失败要把所有申请的虚拟页和物理页回滚，to be continued
+        }
+        page_table_add((void*)vaddr, page_phyaddr);
+        vaddr += PG_SIZE;
+    }
+    return vaddr_start;
+}
+
+//在内核物理内存池中申请pg_cnt页内存，成功则返回虚拟地址，失败则返回NULL
+void* kppool_apply(uint32_t pg_cnt){
+    void* vaddr = malloc_pages(PF_KERNEL, pg_cnt);
+    if(vaddr != NULL){
+        memset(vaddr, 0, 4096 * PG_SIZE);
+    }
+    return vaddr;
 }
 
 //初始化物理内存池

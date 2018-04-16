@@ -3,6 +3,7 @@
 #include "stdint.h"
 #include "bitmap.h"
 
+//虚拟地址池,用于虚拟地址管理
 struct virtual_addr {
    Bitmap vaddr_bitmap; 
    uint32_t vaddr_start;
@@ -13,8 +14,8 @@ enum pool_flags{
     PF_USER = 2
 };
 
-#define PG_P_1 //存在位
-#define PG_P_0
+#define PG_P_1 1//存在位
+#define PG_P_0 0
 #define PG_RW_R 0
 #define PG_RW_W 2
 #define PG_US_S 0
