@@ -2,12 +2,20 @@
 #include "init.h"
 #include "debug.h"
 #include "memory.h"
+#include "../thread/thread.h"
+
+void k_thread_a(void*);
+
 void main(void) {
     put_str("I am kernel\n");
     init_all();
-//   asm volatile("sti");	     // 为演示中断处理,在此临时开中断
-    void* vaddr = get_kernel_pages(1);
-    put_int((uint32_t)vaddr);
-    put_str("\n");
+    
+    thread_start("k_thread_a", 31, k_thread_a, "argA");
+
     while(1);
+}
+
+void k_thread_a(void* arg){
+    char* para = arg;
+    put_str(para);
 }

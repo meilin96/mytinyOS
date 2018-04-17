@@ -3,6 +3,7 @@
 #include "global.h"
 #include "io.h"
 #include "print.h"
+#include "debug.h"
 
 #define PIC_M_CTRL 0x20	       // 这里用的可编程中断控制器是8259A,主片的控制端口是0x20
 #define PIC_M_DATA 0x21	       // 主片的数据端口是0x21
@@ -78,7 +79,9 @@ static void general_intr_handler(uint8_t vec_nr) {
    }
    put_str("int vector: 0x");
    put_int(vec_nr);
+   put_str(": ");put_str(intr_name[vec_nr]);
    put_char('\n');
+   while(1);
 }
 
 /* 完成一般中断处理函数注册及异常名称注册 */
