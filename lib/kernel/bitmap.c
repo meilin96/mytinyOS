@@ -53,7 +53,7 @@ int bitmap_scan(Bitmap* btmp, uint32_t cnt){
     }
     return bit_idx_start;
 }
-
+//用锁, to be continued
 void bitmap_set(Bitmap* btmp, uint32_t bit_idx, int8_t value){
     ASSERT(value == 0 || value == 1);
     uint32_t byte_idx = bit_idx / 8;
