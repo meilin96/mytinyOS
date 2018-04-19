@@ -4,9 +4,26 @@
 #include "memory.h"
 #include "global.h"
 #include "debug.h"
+#include "print.h"
+#include "interrupt.h"
 #define PG_SIZE 4096
 
+struct task_struct* main_thread;    //主线程pcb
+struct list thread_ready_list;      //就绪队列
+struct list_thread_all_list;        //所有task队列
+struct list_elem* thread_tag;       //队列中的节点都是PCB中的tag，需要完成从tag-->PCB的转换（定义这个变量非比要
+
+extern void switch_to(struct task_struct* cur, struct task_struct* next);
+
+struct task_struct* running_thread(){
+    uint32_t esp;
+    asm("mov %%esp, %0":"=g"(esp));
+    //各线程的栈都在pcb中，而一个pcb占一个页，取pcb的高20位就是指向这个pcb的指针
+    return (struct task_struct*)(esp & 0xfffff000);
+}
+
 static void kernel_thread(thread_func* function, void* func_arg){
+    intr_enable();
     function(func_arg);
 }
 
@@ -29,8 +46,15 @@ void init_thread_stack(struct task_struct* pcb, thread_func function, void* func
 void init_thread(struct task_struct* pcb, char* tname, int prio){
     memset(pcb, 0, sizeof(*pcb));
     strcpy(pcb->name, tname);
-    pcb->status = TASK_RUNNING;     //to be continued
+    if(pcb == main_thread){
+        pcb->status = TASK_RUNNING;
+    }else{
+        pcb->status = TASK_READY;
+    }
     pcb->priority = prio;
+    pcb->ticks = prio;
+    pcv->elapsed_ticks = 0;
+    pcb->pgdir = NULL;  //how about process? to be continued
     pcb->self_kstack = (uint32_t*)((uint32_t)pcb + PG_SIZE);
     pcb->stack_magic = STACK_MAGIC;
 }
@@ -41,6 +65,12 @@ struct task_struct* thread_start(char* tname, int prio, thread_func function, vo
     init_thread(pcb, tname, prio);
     init_thread_stack(pcb, function, func_arg);
 
+    //加入队列
+    ASSERT(!elem_find(&thread_ready_list, &pcb->general_tag));
+    list_push_back(&thread_ready_list, &pcb->general_tag);
+    ASSERT(!elem_find(&thread_all_list, &pcb->general_tag));
+    list_push_back(&thread_all_list, &pcb->general_tag);
+    
     //asm volatile ("movl %0, %%esp; pop %%ebp; pop %%ebx; pop %%edi; pop %%esi; ret" : : "g" (pcb->self_kstack) : "memory");
     asm volatile ("movl %0, %%esp;\
                    pop %%ebp; \
@@ -50,3 +80,14 @@ struct task_struct* thread_start(char* tname, int prio, thread_func function, vo
                    ret":: "g"(pcb->self_kstack) : "memory");
     return pcb;
 }
+
+//将kernel的中main函数完善为主线程
+static void make_main_thread(){
+   main_thread = running_thread(); 
+   init_thread(main_thread, "main", 31);
+
+   ASSERT(!elem_find(&thread_all_list, &main_thread->all_list_tag));
+   list_append(&thread_all_list, &main_thread->all_list_tag);
+}
+
+

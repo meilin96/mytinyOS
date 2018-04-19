@@ -1,7 +1,7 @@
 #ifndef __THREAD_THREAD_H
 #define __THREAD_THREAD_H
 #include "stdint.h"
-
+#include "list.h"
 #define STACK_MAGIC 0x19960521; 
 
 typedef void thread_func(void*);
@@ -60,6 +60,13 @@ struct task_struct{
     uint32_t* self_kstack;   //内核栈
     enum task_status status;
     uint8_t priority;        //优先级
+    uint8_t ticks;           //每次在cpu上执行的时间片
+    uint32_t elapsed_ticks;  //在cpu上执行的总时间片
+    //ready or blocked or ...
+    ListElem general_tag;
+    //用于线程队列thread_all_list
+    ListElem all_list_tag;
+    uint32_t* pgdir;         //进程页表的虚拟地址，线程为NULL
     char name[16];
     uint32_t stack_magic;    //栈边界标记，用于检测栈溢出
 };
