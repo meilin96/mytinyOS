@@ -10,8 +10,8 @@
 
 struct task_struct* main_thread;    //主线程pcb
 struct list thread_ready_list;      //就绪队列
-struct list_thread_all_list;        //所有task队列
-struct list_elem* thread_tag;       //队列中的节点都是PCB中的tag，需要完成从tag-->PCB的转换（定义这个变量非比要
+struct list thread_all_list;        //所有task队列
+struct list_elem* thread_tag;       //队列中的节点都是PCB中的tag，需要完成从tag-->PCB的转换（定义这个变量非必要
 
 extern void switch_to(struct task_struct* cur, struct task_struct* next);
 
@@ -53,7 +53,7 @@ void init_thread(struct task_struct* pcb, char* tname, int prio){
     }
     pcb->priority = prio;
     pcb->ticks = prio;
-    pcv->elapsed_ticks = 0;
+    pcb->elapsed_ticks = 0;
     pcb->pgdir = NULL;  //how about process? to be continued
     pcb->self_kstack = (uint32_t*)((uint32_t)pcb + PG_SIZE);
     pcb->stack_magic = STACK_MAGIC;
@@ -87,7 +87,27 @@ static void make_main_thread(){
    init_thread(main_thread, "main", 31);
 
    ASSERT(!elem_find(&thread_all_list, &main_thread->all_list_tag));
-   list_append(&thread_all_list, &main_thread->all_list_tag);
+   list_push_back(&thread_all_list, &main_thread->all_list_tag);
 }
 
+void schedule(){
+    ASSERT(intr_get_status() == INTR_OFF);
 
+    struct task_struct* cur = running_thread();
+    if(cur->status == TASK_RUNNING){
+        ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
+        list_push_back(&thread_ready_list, &cur->general_tag);
+        cur->ticks = cur->priority;
+        cur->status = TASK_READY;
+    }else{
+        //cur->status == Blocked to be continued
+    }
+
+    ASSERT(!list_empty(&thread_ready_list));
+    
+    ListElem* next_thread_tag = list_pop_front(&thread_list_ready);
+    struct task_struct* next_thread = elem2entry(struct task_struct, general_tag, thread_tag);
+    next->status = TASK_RUNNING;
+    switch_to(cur, next);
+    
+}

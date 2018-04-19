@@ -11,6 +11,23 @@
 #define READ_WRITE_LATCH   3
 #define PIT_CONTROL_PORT   0x43
 
+uint32_t ticks;     //内核开启以来总ticks数
+
+static void intr_timer_handle(){
+    struct task_struct* cur_thread = running_thread();
+
+    ASSERT(cur_thread->stack_magic == STACK_MAGIC);
+    
+    cur_thread->elapsed_ticks++;
+    ticcks++;
+
+    if(cur_thread->ticks == 0){
+        schedule();
+    }else{
+        cur_thread->ticks--;
+    }
+}
+
 /* 把操作的计数器counter_no、读写锁属性rwl、计数器模式counter_mode写入模式控制寄存器并赋予初始值counter_value */
 static void frequency_set(uint8_t counter_port, \
 			  uint8_t counter_no, \

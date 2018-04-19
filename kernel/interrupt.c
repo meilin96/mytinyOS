@@ -74,13 +74,30 @@ static void idt_desc_init(void) {
 
 /* 通用的中断处理函数,一般用在异常出现时的处理 */
 static void general_intr_handler(uint8_t vec_nr) {
-   if (vec_nr == 0x27 || vec_nr == 0x2f) {	// 0x2f是从片8259A上的最后一个irq引脚，保留
-      return;		//IRQ7和IRQ15会产生伪中断(spurious interrupt),无须处理。
-   }
-   put_str("int vector: 0x");
-   put_int(vec_nr);
-   put_str(": ");put_str(intr_name[vec_nr]);
-   put_char('\n');
+    if (vec_nr == 0x27 || vec_nr == 0x2f) {	// 0x2f是从片8259A上的最后一个irq引脚，保留
+       return;		//IRQ7和IRQ15会产生伪中断(spurious interrupt),无须处理。
+    }
+
+    set_cursor(0);
+    int cursor_pos = 0;
+    while(cursor_pos < 320){
+        put_char(' ');
+        cursor_pos++;
+    }
+    set_cursor(0);
+    put_str("!!!!!!  excetion message begin  !!!!!!\n");
+    set_cursor(88);
+    put_str(intr_name[vec_nr]);
+    if(vec_nr == 14){
+        int page_fault_vaddr = 0;
+        asm("movl %%cr2, %0" : "=r"(page_fault_vaddr));
+        put_str("\npage fault addr is ");put_int(page_fault_vaddr);
+    }
+    put_str("\n!!!!!!   excetion message end   !!!!!!\n");
+   //put_str("int vector: 0x");
+   //put_int(vec_nr);
+   //put_str(": ");put_str(intr_name[vec_nr]);
+   //put_char('\n');
    while(1);
 }
 
