@@ -16,14 +16,16 @@ build/memory.o:kernel/memory.c
 	gcc -m32 -I lib/kernel -I lib/ -I kernel/ -c -fno-builtin -o build/memory.o kernel/memory.c
 build/thread.o:thread/thread.c
 	gcc -m32 -I lib/kernel -I lib/ -I kernel/ -c -fno-builtin -o build/thread.o thread/thread.c
+build/list.o:lib/kernel/list.c
+	gcc -m32 -I lib/kernel -I lib/ -I kernel/ -c -fno-builtin -o build/list.o lib/kernel/list.c
 
 build/kernel.o:kernel/kernel.S
 	nasm -f elf -o build/kernel.o kernel/kernel.S
 build/print.o:lib/kernel/print.S
 	nasm -f elf -o build/print.o lib/kernel/print.S
 
-build/kernel.bin:build/timer.o build/main.o build/init.o build/interrupt.o build/print.o build/kernel.o build/debug.o build/string.o build/bitmap.o build/memory.o build/thread.o
-	ld -m elf_i386 -Ttext 0xc0001500 -e main -o build/kernel.bin build/main.o build/init.o build/interrupt.o build/print.o build/kernel.o build/timer.o build/debug.o build/string.o build/bitmap.o build/memory.o build/thread.o
+build/kernel.bin:build/timer.o build/main.o build/init.o build/interrupt.o build/print.o build/kernel.o build/debug.o build/string.o build/bitmap.o build/memory.o build/thread.o build/list.o
+	ld -m elf_i386 -Ttext 0xc0001500 -e main -o build/kernel.bin build/main.o build/init.o build/interrupt.o build/print.o build/kernel.o build/timer.o build/debug.o build/string.o build/bitmap.o build/memory.o build/thread.o build/list.o
 
 all:build/kernel.bin
 	@echo "compile done"
