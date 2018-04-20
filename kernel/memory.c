@@ -74,6 +74,7 @@ static void page_table_add(void* _vaddr, void* _page_phyaddr){
 
     //先判断对应的pde是否存在
     if (*pde & 0x00000001){
+        put_int((uint32_t)_vaddr);put_str("\n");put_int((uint32_t) _page_phyaddr);
         ASSERT(!(*pte & 0x00000001));//如果对应pte已经存在则报错
         if(!(*pte & 0x00000001)){
             *pte = page_phyaddr | PG_US_U | PG_RW_W | PG_P_1;

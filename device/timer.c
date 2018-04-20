@@ -1,6 +1,9 @@
 #include "timer.h"
 #include "io.h"
 #include "print.h"
+#include "interrupt.h"
+#include "thread.h"
+#include "debug.h"
 
 #define IRQ0_FREQUENCY	   100
 #define INPUT_FREQUENCY	   1193180
@@ -13,13 +16,13 @@
 
 uint32_t ticks;     //内核开启以来总ticks数
 
-static void intr_timer_handle(){
+static void intr_timer_handler(){
     struct task_struct* cur_thread = running_thread();
 
     ASSERT(cur_thread->stack_magic == STACK_MAGIC);
     
     cur_thread->elapsed_ticks++;
-    ticcks++;
+    ticks++;
 
     if(cur_thread->ticks == 0){
         schedule();
@@ -47,5 +50,6 @@ void timer_init() {
    put_str("timer_init start\n");
    /* 设置8253的定时周期,也就是发中断的周期 */
    frequency_set(CONTRER0_PORT, COUNTER0_NO, READ_WRITE_LATCH, COUNTER_MODE, COUNTER0_VALUE);
+   regist_handler(0x20, intr_timer_handler);
    put_str("timer_init done\n");
 }

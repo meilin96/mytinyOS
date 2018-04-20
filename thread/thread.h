@@ -2,7 +2,7 @@
 #define __THREAD_THREAD_H
 #include "stdint.h"
 #include "list.h"
-#define STACK_MAGIC 0x19960521; 
+#define STACK_MAGIC 0x19960521 
 
 typedef void thread_func(void*);
 
@@ -74,5 +74,7 @@ struct task_struct{
 void init_thread_stack(struct task_struct* pcb, thread_func func, void* func_arg);
 void init_thread(struct task_struct* pcb, char* name, int prio);
 struct task_struct* thread_start(char* tname, int prio, thread_func func, void* func_arg);
+struct task_struct* running_thread();
 void schedule();
+void thread_init();
 #endif

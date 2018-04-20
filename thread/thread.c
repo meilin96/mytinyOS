@@ -69,15 +69,8 @@ struct task_struct* thread_start(char* tname, int prio, thread_func function, vo
     ASSERT(!elem_find(&thread_ready_list, &pcb->general_tag));
     list_push_back(&thread_ready_list, &pcb->general_tag);
     ASSERT(!elem_find(&thread_all_list, &pcb->general_tag));
-    list_push_back(&thread_all_list, &pcb->general_tag);
+    list_push_back(&thread_all_list, &pcb->all_list_tag);
     
-    //asm volatile ("movl %0, %%esp; pop %%ebp; pop %%ebx; pop %%edi; pop %%esi; ret" : : "g" (pcb->self_kstack) : "memory");
-    asm volatile ("movl %0, %%esp;\
-                   pop %%ebp; \
-                   pop %%ebx;\
-                   pop %%edi; \
-                   pop %%esi;\
-                   ret":: "g"(pcb->self_kstack) : "memory");
     return pcb;
 }
 
@@ -90,7 +83,7 @@ static void make_main_thread(){
    list_push_back(&thread_all_list, &main_thread->all_list_tag);
 }
 
-void schedule(){
+void scheduled(){
     ASSERT(intr_get_status() == INTR_OFF);
 
     struct task_struct* cur = running_thread();
@@ -105,9 +98,41 @@ void schedule(){
 
     ASSERT(!list_empty(&thread_ready_list));
     
-    ListElem* next_thread_tag = list_pop_front(&thread_list_ready);
+    ListElem* next = list_pop_front(&thread_ready_list);
     struct task_struct* next_thread = elem2entry(struct task_struct, general_tag, thread_tag);
-    next->status = TASK_RUNNING;
-    switch_to(cur, next);
-    
+    next_thread->status = TASK_RUNNING;
+    put_str("\nswitch_to func start running\n");
+    switch_to(cur, next_thread);    
+}
+
+void schedule() {
+
+   ASSERT(intr_get_status() == INTR_OFF);
+
+   struct task_struct* cur = running_thread(); 
+   if (cur->status == TASK_RUNNING) { // 若此线程只是cpu时间片到了,将其加入到就绪队列尾
+      ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
+      list_push_back(&thread_ready_list, &cur->general_tag);
+      cur->ticks = cur->priority;     // 重新将当前线程的ticks再重置为其priority;
+      cur->status = TASK_READY;
+   } else { 
+      /* 若此线程需要某事件发生后才能继续上cpu运行,
+      不需要将其加入队列,因为当前线程不在就绪队列中。*/
+   }
+
+   ASSERT(!list_empty(&thread_ready_list));
+   thread_tag = NULL;	  // thread_tag清空
+/* 将thread_ready_list队列中的第一个就绪线程弹出,准备将其调度上cpu. */
+   thread_tag = list_pop_front(&thread_ready_list);   
+   struct task_struct* next = elem2entry(struct task_struct, general_tag, thread_tag);
+   next->status = TASK_RUNNING;
+   switch_to(cur, next);
+}
+
+void thread_init(){
+    put_str("thread_init start\n");
+    list_init(&thread_ready_list);
+    list_init(&thread_all_list);
+    make_main_thread();
+    put_str("thread_init done\n");
 }

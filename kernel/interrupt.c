@@ -148,6 +148,10 @@ void idt_init() {
    put_str("idt_init done\n");
 }
 
+void regist_handler(uint8_t vec_number, intr_handler function){
+    idt_table[vec_number] = function;
+}
+
 enum intr_status intr_enable(){
     enum intr_status old_status;
     if (INTR_ON == intr_get_status()){
