@@ -101,7 +101,6 @@ void scheduled(){
     ListElem* next = list_pop_front(&thread_ready_list);
     struct task_struct* next_thread = elem2entry(struct task_struct, general_tag, thread_tag);
     next_thread->status = TASK_RUNNING;
-    put_str("\nswitch_to func start running\n");
     switch_to(cur, next_thread);    
 }
 
@@ -135,4 +134,29 @@ void thread_init(){
     list_init(&thread_all_list);
     make_main_thread();
     put_str("thread_init done\n");
+}
+
+//当前线程将自己阻塞，并标记状态为stat
+void thread_block(enum task_status stat){
+    ASSERT((stat == TASK_BLOCKED) || (stat == TASK_HANGING) || (stat == TASK_WAITING));
+    enum intr_status old_intr_status = intr_disable();
+    struct task_struct* cur_thread = running_thread();
+    cur_thread->status = stat;
+    schedule();
+    //线程阻塞被解除后才运行下面的
+    intr_set_status(old_intr_status);
+}
+//解除线程thread的阻塞
+void thread_unblock(struct task_struct* thread){
+    enum intr_status intr_old_status = intr_disable();
+    enum task_old_status = thread->status;
+    ASSERT((task_old_status == TASK_BLOCKED) || (task_old_status == TASK_WAITING) || (task_old_status == TASK_BLOCKED)); 
+    if(task_old_status != TASK_READY){
+        if(elem_find(&thread_ready_list, &thread->general_tag)){
+            PANIC("thread_unblock:blocked thread in ready list!");
+        }
+        list_push_back(&thread_ready_list, &thread->general_tag);
+        thread->status = TASK_READY;
+    }
+    intr_set_status(intr_old_status);
 }
