@@ -2,9 +2,9 @@
 #include "init.h"
 #include "debug.h"
 #include "memory.h"
-#include "../thread/thread.h"
+#include "thread.h"
 #include "interrupt.h"
-
+#include "console.h"
 void k_thread_a(void*);
 
 void main(void) {
@@ -16,12 +16,12 @@ void main(void) {
     intr_enable();
 
     while(1)
-        put_str("Main ");
+        console_put_str("Main ");
     
 }
 
 void k_thread_a(void* arg){
     char* para = arg;
     while(1)
-        put_str(para);put_str("\n");
+        console_put_str(para);
 }

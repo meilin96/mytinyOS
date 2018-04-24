@@ -12,4 +12,5 @@ void init_all() {
    mem_init();
    thread_init();
    timer_init();  // 初始化PIT
+   console_init();
 }

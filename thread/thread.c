@@ -83,27 +83,6 @@ static void make_main_thread(){
    list_push_back(&thread_all_list, &main_thread->all_list_tag);
 }
 
-void scheduled(){
-    ASSERT(intr_get_status() == INTR_OFF);
-
-    struct task_struct* cur = running_thread();
-    if(cur->status == TASK_RUNNING){
-        ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
-        list_push_back(&thread_ready_list, &cur->general_tag);
-        cur->ticks = cur->priority;
-        cur->status = TASK_READY;
-    }else{
-        //cur->status == Blocked to be continued
-    }
-
-    ASSERT(!list_empty(&thread_ready_list));
-    
-    ListElem* next = list_pop_front(&thread_ready_list);
-    struct task_struct* next_thread = elem2entry(struct task_struct, general_tag, thread_tag);
-    next_thread->status = TASK_RUNNING;
-    switch_to(cur, next_thread);    
-}
-
 void schedule() {
 
    ASSERT(intr_get_status() == INTR_OFF);
@@ -149,7 +128,7 @@ void thread_block(enum task_status stat){
 //解除线程thread的阻塞
 void thread_unblock(struct task_struct* thread){
     enum intr_status intr_old_status = intr_disable();
-    enum task_old_status = thread->status;
+    enum task_status task_old_status = thread->status;
     ASSERT((task_old_status == TASK_BLOCKED) || (task_old_status == TASK_WAITING) || (task_old_status == TASK_BLOCKED)); 
     if(task_old_status != TASK_READY){
         if(elem_find(&thread_ready_list, &thread->general_tag)){
