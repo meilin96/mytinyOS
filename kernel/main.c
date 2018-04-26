@@ -11,12 +11,12 @@ void main(void) {
     put_str("I am kernel\n");
     init_all();
     
-    thread_start("k_thread_a", 31, k_thread_a, "A ");
-    thread_start("k_thread_a", 31, k_thread_a, "B ");
+//    thread_start("k_thread_a", 31, k_thread_a, "A ");
+ //   thread_start("k_thread_a", 31, k_thread_a, "B ");
     intr_enable();
 
-    while(1)
-        console_put_str("Main ");
+    while(1);
+//        console_put_str("Main ");
     
 }
 
