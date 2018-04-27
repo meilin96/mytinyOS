@@ -5,3 +5,4 @@ kernel/kernel.bin
 build/
 caogao
 ddkernel.sh
+.vscode/
