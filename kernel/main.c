@@ -9,7 +9,7 @@
 #include "keyboard.h"
 void k_thread_a(void*);
 
-void main(void) {
+int main(void) {
     put_str("I am kernel\n");
     init_all();
     
@@ -19,11 +19,11 @@ void main(void) {
 
     while(1);
 //        console_put_str("Main ");
-    
+   
+   return 0;
 }
 
 void k_thread_a(void* arg){
-    char* para = arg;
     while(1){
         intr_disable();
         if(!ioq_empty(&kbd_buf)){
