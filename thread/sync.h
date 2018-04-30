@@ -20,4 +20,7 @@ typedef struct lock Lock;
 void lock_init(Lock* lock);
 void lock_acquire(Lock* lock);
 void lock_release(Lock* lock);
+void sema_init(struct semaphore *sema, uint8_t value);
+void sema_up(struct semaphore* s);
+void sema_down(struct semaphore *s);
 #endif
