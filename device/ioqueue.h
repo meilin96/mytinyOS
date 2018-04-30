@@ -18,6 +18,6 @@ struct ioqueue{
 void ioqueue_init(struct ioqueue *ioq);
 bool ioq_full(struct ioqueue* kbd_buf);
 void ioq_putchar(struct ioqueue* , char);
-char oq_getchar(struct ioqueue *);
+char ioq_getchar(struct ioqueue *);
 bool ioq_empty(struct ioqueue *);
 #endif

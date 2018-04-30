@@ -74,8 +74,8 @@ $(BUILD_DIR)/kernel.bin: $(OBJS)
 
 
 .PHONY:clean all
-all: clean build/kernel.bin
+all: build/kernel.bin
 
 clean:
-	@rm build/*.o
+	@rm build/*
 	@echo "object files removed"
