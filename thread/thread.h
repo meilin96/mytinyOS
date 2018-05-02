@@ -2,6 +2,7 @@
 #define __THREAD_THREAD_H
 #include "stdint.h"
 #include "list.h"
+#include "memory.h"
 #define STACK_MAGIC 0x19960521 
 
 typedef void thread_func(void*);
