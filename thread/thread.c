@@ -26,9 +26,16 @@ struct task_struct* running_thread(){
 static void kernel_thread(thread_func* function, void* func_arg){
     intr_enable();
     function(func_arg);
+    //what if thread finished? how to schedule now ? to be continued
+    // struct task_struct* cur = running_thread();
+    // ASSERT(elem_find(&thread_ready_list, &cur->general_tag));
+    // list_remove(&cur->general_tag);
+    // while(1);
+    // schedule();
 }
 
 //初始化线程栈,把待执行的函数和参数放到栈中对应的位置
+// 详情 ${workspace}/img/thread_stack_status_before_first_schedule.png
 void init_thread_stack(struct task_struct* pcb, thread_func function, void* func_arg){
     //预留出中断栈的空间
     pcb->self_kstack -= sizeof(struct intr_stack);

@@ -3,8 +3,8 @@
 #include "global.h"
 #define BITMAP_MASK 1
 struct bitmap{
-    uint32_t btmp_bytes_len;
-    uint8_t* bits;
+    uint32_t btmp_bytes_len;    //位图长度，以bytes为单位
+    uint8_t* bits;              //位图地址
 };
 
 typedef struct bitmap Bitmap;

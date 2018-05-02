@@ -24,6 +24,7 @@ enum pool_flags{
 extern struct pool kernel_pool, user_pool;
 void mem_init(void);
 void* get_kernel_pages(uint32_t pg_cnt);
+void* get_user_pages(uint32_t pg_cnt);
 void* malloc_pages(enum pool_flags pf, uint32_t pg_cnt);
 void malloc_init();
 uint32_t* pte_ptr(uint32_t vaddr);

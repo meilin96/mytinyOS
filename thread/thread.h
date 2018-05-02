@@ -67,6 +67,7 @@ struct task_struct{
     //用于线程队列thread_all_list
     ListElem all_list_tag;
     uint32_t* pgdir;         //进程页表的虚拟地址，线程为NULL
+    struct virtual_addr userprog_vaddr; //进程的虚拟地址池
     char name[16];
     uint32_t stack_magic;    //栈边界标记，用于检测栈溢出
 };
