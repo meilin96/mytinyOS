@@ -31,6 +31,10 @@ void list_push_back(List* list, ListElem* elem){
     list_insert_before(&(list->tail), elem);
 }
 
+void list_append(List *list, ListElem *elem) {
+    list_insert_before(&(list->tail), elem);
+}
+
 void list_remove(ListElem* elem){
     enum intr_status old_status = intr_disable();
     

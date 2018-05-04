@@ -225,14 +225,14 @@ static void mem_pool_init(uint32_t all_mem){
     put_str("  user_pool_phy_addr_start: "); put_int(user_pool.phy_addr_start);
     put_str("\n");
 
-    bitmap_init(&kernel_pool.pool_bitmap);
-    bitmap_init(&user_pool.pool_bitmap);
+    bitmap_bzero(&kernel_pool.pool_bitmap);
+    bitmap_bzero(&user_pool.pool_bitmap);
 
     kernel_vaddr.vaddr_bitmap.btmp_bytes_len = kbm_length;
     kernel_vaddr.vaddr_bitmap.bits = (void*)(MEM_BITMAP_BASE + kbm_length + ubm_length);
 
     kernel_vaddr.vaddr_start = K_HEAP_START;
-    bitmap_init(&kernel_vaddr.vaddr_bitmap);
+    bitmap_bzero(&kernel_vaddr.vaddr_bitmap);
     lock_init(&kernel_pool.lock);
     lock_init(&user_pool.lock);
     put_str("mem_pool_init done\n");    

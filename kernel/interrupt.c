@@ -88,7 +88,7 @@ static void general_intr_handler(uint8_t vec_nr) {
         cursor_pos++;
     }
     set_cursor(0);
-    put_str("!!!!!!  excetion message begin  !!!!!!\n");
+    put_str("!!!!!!  exception message begin  !!!!!!\n");
     set_cursor(88);
     put_int(vec_nr);put_str(intr_name[vec_nr]);
     if(vec_nr == 14){
@@ -96,7 +96,7 @@ static void general_intr_handler(uint8_t vec_nr) {
         asm("movl %%cr2, %0" : "=r"(page_fault_vaddr));
         put_str("\npage fault addr is ");put_int(page_fault_vaddr);
     }
-    put_str("\n!!!!!!   excetion message end   !!!!!!\n");
+    put_str("\n!!!!!!   excep   tion message end   !!!!!!\n");
    //put_str("int vector: 0x");
    //put_int(vec_nr);
    //put_str(": ");put_str(intr_name[vec_nr]);

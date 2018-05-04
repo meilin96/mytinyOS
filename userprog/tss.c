@@ -13,7 +13,7 @@ struct tss {
     uint32_t *esp2;
     uint32_t ss2;
     uint32_t cr3;
-    uint32_t (*eip)(void); // to be continued
+    uint32_t (*eip)(void);
     uint32_t eflags;
     uint32_t eax;
     uint32_t ecx;
@@ -35,7 +35,7 @@ struct tss {
 };
 
 static struct tss tss;
-
+//把pcb顶端作为0特权级栈，即内核栈
 void update_tss_esp(struct task_struct* pthread) {
     tss.esp0 = (uint32_t *)((uint32_t)pthread + PG_SIZE);
 }

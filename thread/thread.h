@@ -4,7 +4,7 @@
 #include "list.h"
 #include "memory.h"
 #define STACK_MAGIC 0x19960521 
-
+#define DEFAULT_PRIO 31
 typedef void thread_func(void*);
 
 enum task_status{
@@ -72,6 +72,9 @@ struct task_struct{
     char name[16];
     uint32_t stack_magic;    //栈边界标记，用于检测栈溢出
 };
+
+extern List thread_all_list;
+extern List thread_ready_list;
 
 void init_thread_stack(struct task_struct* pcb, thread_func func, void* func_arg);
 void init_thread(struct task_struct* pcb, char* name, int prio);

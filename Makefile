@@ -12,7 +12,8 @@ OBJS =  $(BUILD_DIR)/main.o $(BUILD_DIR)/timer.o $(BUILD_DIR)/init.o \
         $(BUILD_DIR)/bitmap.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/thread.o \
         $(BUILD_DIR)/list.o $(BUILD_DIR)/sync.o $(BUILD_DIR)/console.o \
         $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/ioqueue.o $(BUILD_DIR)/print.o \
-        $(BUILD_DIR)/switch.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/tss.o
+        $(BUILD_DIR)/switch.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/tss.o \
+        $(BUILD_DIR)/process.o
 
 #--------------------------------C代码
 $(BUILD_DIR)/main.o: kernel/main.c
@@ -61,6 +62,9 @@ $(BUILD_DIR)/ioqueue.o: device/ioqueue.c
     
 $(BUILD_DIR)/tss.o: userprog/tss.c 
 	$(CC) -m32 -W -Wall $(LIB) -c -fno-builtin -fno-stack-protector -o $@ $<
+
+$(BUILD_DIR)/process.o: userprog/process.c 
+	$(CC) $(CFLAGS) $@ $<
 
 #--------------------------------汇编代码
 $(BUILD_DIR)/kernel.o: kernel/kernel.S

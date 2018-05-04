@@ -5,6 +5,11 @@
 #include "debug.h"
 #include "interrupt.h"
 
+//把位图中的内存清零
+void bitmap_bzero(Bitmap* btmp){
+    memset(btmp->bits, 0, btmp->btmp_bytes_len);
+}
+
 void bitmap_init(Bitmap* btmp){
     memset(btmp->bits, 0, btmp->btmp_bytes_len);
 }

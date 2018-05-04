@@ -8,9 +8,11 @@ void memset(void* dst, uint8_t value, uint32_t size){
 }
 
 void memcpy(void* dst, const void* src, uint32_t size){
-    ASSERT(dst != NULL && src != NULL);
-    while(size--){
-       *((uint8_t*)dst++) = *((const uint8_t*) src++); 
+    ASSERT(dst != NULL && src != NULL && size > 0);
+    uint8_t* d = dst;
+    const uint8_t *s = src;
+    while(size-- > 0){
+        *d++ = *s++; 
     }
 }
 
