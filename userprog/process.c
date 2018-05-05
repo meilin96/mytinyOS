@@ -30,7 +30,7 @@ void start_process(void* filename_){
     //指向用户3特权级下的栈 P511
     proc_stack->esp = ((uint32_t)get_a_page(PF_USER, USER_STACK3_VADDR) + PG_SIZE); //to be continued (void*)
     proc_stack->ss = SELECTOR_U_STACK;
-    console_put_str("\nbitmap_pg_cnt: ");
+    // console_put_str("\nbitmap_pg_cnt: "); Page Fault to be continued
     asm volatile ("movl %0, %%esp; jmp intr_exit" :: "g" (proc_stack) : "memory");
 }
 //激活页表
