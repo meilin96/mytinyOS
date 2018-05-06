@@ -7,6 +7,7 @@
 #include "print.h"
 #include "interrupt.h"
 #include "process.h"
+#include "sync.h"
 #define PG_SIZE 4096
 
 struct task_struct* main_thread;    //主线程pcb
@@ -14,7 +15,7 @@ struct list thread_ready_list;      //就绪队列
 struct list thread_all_list;        //所有task队列
 //队列中的节点都是PCB中的tag，需要完成从tag-->PCB的转换(elem2entry（定义这个变量非必要,可以用局部变量代替
 struct list_elem *thread_tag;
-
+Lock pid_lock;
 extern void switch_to(struct task_struct* cur, struct task_struct* next);
 
 struct task_struct* running_thread(){
@@ -51,9 +52,18 @@ void init_thread_stack(struct task_struct* pcb, thread_func function, void* func
 
 }
 
+static pid_t allocate_pid(){
+    static pid_t next_pid = 0;
+    lock_acquire(&pid_lock);
+    next_pid++;
+    lock_release(&pid_lock);
+    return next_pid;
+}
+
 //初始化线程的基本信息
 void init_thread(struct task_struct* pcb, char* tname, int prio){
     memset(pcb, 0, sizeof(*pcb));
+    pcb->pid = allocate_pid();
     strcpy(pcb->name, tname);
     if(pcb == main_thread){
         pcb->status = TASK_RUNNING;
@@ -121,6 +131,7 @@ void thread_init(){
     put_str("thread_init start\n");
     list_init(&thread_ready_list);
     list_init(&thread_all_list);
+    lock_init(&pid_lock);
     make_main_thread();
     put_str("thread_init done\n");
 }

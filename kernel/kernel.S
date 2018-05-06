@@ -94,3 +94,27 @@ VECTOR 0x2c,ZERO
 VECTOR 0x2d,ZERO
 VECTOR 0x2e,ZERO
 VECTOR 0x2f,ZERO
+
+;----------------0x80中断----------------
+[bits 32]
+extern syscall_table
+section .text
+global syscall_handler
+syscall_handler:
+;保存上下文环境
+push 0
+push ds
+push fs
+push gs
+pushad
+
+push 0x80
+;为子功能函数准备参数
+push edx
+push ecx
+push ebx
+
+call [syscall_table + eax * 4]
+add esp, 12
+mov [esp + 8*4], eax
+jmp intr_exit

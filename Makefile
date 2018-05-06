@@ -1,7 +1,7 @@
 CC = gcc
 AS = nasm
 LD = ld
-LIB = -I lib/ -I lib/kernel -I kernel/ -I device/ -I thread/ -I userprog/
+LIB = -I lib/ -I lib/kernel -I kernel/ -I device/ -I thread/ -I userprog/ -I lib/user
 ASFLAGS = -f elf -o
 CFLAGS = -m32 -W -Wall $(LIB) -c -fno-builtin -o
 ENTRY_POINT = 0xc0001500
@@ -13,7 +13,7 @@ OBJS =  $(BUILD_DIR)/main.o $(BUILD_DIR)/timer.o $(BUILD_DIR)/init.o \
         $(BUILD_DIR)/list.o $(BUILD_DIR)/sync.o $(BUILD_DIR)/console.o \
         $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/ioqueue.o $(BUILD_DIR)/print.o \
         $(BUILD_DIR)/switch.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/tss.o \
-        $(BUILD_DIR)/process.o
+        $(BUILD_DIR)/process.o $(BUILD_DIR)/syscall.o $(BUILD_DIR)/syscall-init.o
 
 #--------------------------------C代码
 $(BUILD_DIR)/main.o: kernel/main.c
@@ -66,6 +66,12 @@ $(BUILD_DIR)/tss.o: userprog/tss.c
 $(BUILD_DIR)/process.o: userprog/process.c 
 	$(CC) $(CFLAGS) $@ $<
 
+$(BUILD_DIR)/syscall-init.o: userprog/syscall-init.c 
+	$(CC) $(CFLAGS) $@ $<
+
+$(BUILD_DIR)/syscall.o: lib/user/syscall.c 
+	$(CC) $(CFLAGS) $@ $<
+
 #--------------------------------汇编代码
 $(BUILD_DIR)/kernel.o: kernel/kernel.S
 	$(AS) $(ASFLAGS) $@ $<
@@ -83,7 +89,7 @@ $(BUILD_DIR)/kernel.bin: $(OBJS)
 
 .PHONY:clean all
 all: build/kernel.bin
-
+	@echo "Done"
 clean:
 	@rm build/*
 	@echo "object files removed"

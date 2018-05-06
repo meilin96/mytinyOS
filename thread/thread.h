@@ -6,7 +6,7 @@
 #define STACK_MAGIC 0x19960521 
 #define DEFAULT_PRIO 31
 typedef void thread_func(void*);
-
+typedef int16_t pid_t;
 enum task_status{
     TASK_RUNNING,
     TASK_READY,
@@ -59,6 +59,7 @@ struct thread_stack{
 //PCB 在内存中占用一页
 struct task_struct{
     uint32_t* self_kstack;   //内核栈
+    pid_t pid;
     enum task_status status;
     uint8_t priority;        //优先级
     uint8_t ticks;           //每次在cpu上执行的时间片
