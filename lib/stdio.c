@@ -19,9 +19,9 @@ void itoa(uint32_t value, char **buf_ptr_addr, uint8_t base) {
         itoa(i, buf_ptr_addr, base);
     }
     if (m < 10) {
-        *((*buf_ptr_addr++)) = m + '0';
+        *((*buf_ptr_addr)++) = m + '0';
     } else {
-        *((*buf_ptr_addr++)) = m - 10 + 'A';
+        *((*buf_ptr_addr)++) = m - 10 + 'A';
     }
 }
 

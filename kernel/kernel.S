@@ -104,6 +104,7 @@ syscall_handler:
 ;保存上下文环境
 push 0
 push ds
+push es
 push fs
 push gs
 pushad
