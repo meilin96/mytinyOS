@@ -11,4 +11,5 @@ char* strchr(const char* string, const uint8_t ch);
 char* strrchr(const char* string, const uint8_t ch);
 char* strcat(char* dst_, const char* src_);
 uint32_t strchrs(const char* filename, uint8_t ch);
+void bzero(void *dst, uint32_t size);
 #endif

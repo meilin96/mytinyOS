@@ -5,12 +5,15 @@
 #include "debug.h"
 #include "string.h"
 #include "sync.h"
+#include "interrupt.h"
 #define PG_SIZE 4096
 
 #define MEM_BITMAP_BASE 0xc009a000 //P384
 
 #define K_HEAP_START 0xc0100000
 
+#define PDE_IDX(addr) ((addr & 0xffc00000) >> 22)
+#define PTE_IDX(addr) ((addr & 0x003ff000) >> 12)
 //物理内存内存池
 struct pool {
     Bitmap pool_bitmap;
@@ -19,10 +22,14 @@ struct pool {
     Lock lock;
 };
 
-#define PDE_IDX(addr) ((addr & 0xffc00000) >> 22)
-#define PTE_IDX(addr) ((addr & 0x003ff000) >> 12)
+struct arena {
+    struct mem_block_desc* desc;
+    //空闲mem_block数,当large为true时表示本arena占用的页框数
+    uint32_t free_block_cnt;
+    bool large;                     
+};
 
-
+struct mem_block_desc k_block_desc[DESC_CNT];
 struct virtual_addr kernel_vaddr;
 typedef struct pool Pool; 
 Pool kernel_pool, user_pool;
@@ -238,10 +245,112 @@ static void mem_pool_init(uint32_t all_mem){
     put_str("mem_pool_init done\n");    
 }
 
+//为7种desc做初始化
+void block_desc_init(struct mem_block_desc *desc_array) {
+    uint16_t desc_idx, block_size = 16;
+    for (desc_idx = 0; desc_idx < DESC_CNT; desc_idx++) {
+        desc_array[desc_idx].block_size = block_size;
+        desc_array[desc_idx].blocks_per_arena =
+            (PG_SIZE - sizeof(struct arena)) / block_size;
+        list_init(&desc_array[desc_idx].free_list);
+        block_size *= 2;
+    }
+}
+
 void mem_init(){
     put_str("mem_init start\n");
     //在loader中把机器的内存容量保存在了地址(0xb00)中
     uint32_t mem_bytes_total = *(uint32_t*)(0xb00);
     mem_pool_init(mem_bytes_total);
+    block_desc_init(k_block_desc);
     put_str("mem_init done!\n");
 }
+
+//返回arena中第idx个内存块的地址
+static struct mem_block* arena2block(struct arena* a, uint32_t idx){
+    return (struct mem_block*)((uint32_t)a + sizeof(struct arena) + idx * a->desc->block_size);
+}
+
+//返回block所在arena的地址
+static struct arena* block2arena(struct mem_block* b){
+    return (struct arena*)((uint32_t)b & 0xfffff000);
+}
+
+void* sys_malloc(uint32_t size){
+    enum pool_flags PF;
+    struct pool* mem_pool;
+    uint32_t pool_size;
+    struct mem_block_desc* descs;
+    struct task_struct* cur_thread = running_thread();
+
+    if(cur_thread->pgdir == NULL){
+        PF = PF_KERNEL;
+        pool_size = kernel_pool.pool_size;
+        mem_pool = &kernel_pool;
+        descs = k_block_desc;
+    }else{
+        PF = PF_USER;
+        pool_size = kernel_pool.pool_size;
+        mem_pool = &kernel_pool;
+        descs = k_block_desc;
+    }
+
+    if(!(size > 0 && size < pool_size)){
+        return NULL;
+    }
+    struct arena* a;
+    struct mem_block* b;
+    lock_acquire(&mem_pool->lock);
+    //申请的内存大于1024，直接分配一页
+    if(size > 1024){
+        uint32_t page_cnt = DIV_ROUND_UP(size + sizeof(struct arena), PG_SIZE);
+        a = malloc_pages(PF, page_cnt);
+
+        if(a != NULL){
+            bzero(a, page_cnt * PG_SIZE);
+            a->desc = NULL;
+            a->free_block_cnt = page_cnt;
+            a->large = true;
+            lock_release(&mem_pool->lock);
+            return (void*)(a + 1);
+        }else{
+            lock_release(&mem_pool->lock);
+            return NULL;
+        }
+    }else{
+        uint8_t desc_idx;
+        for(desc_idx = 0;desc_idx < DESC_CNT;desc_idx++){
+            if(size <= descs[desc_idx].block_size)
+                break;
+        }
+        //mem_desc中已经没有可用的block，创建新arena提供block
+        if( list_empty(&descs[desc_idx].free_list)){
+            a = malloc_pages(PF, 1);
+            if (a == NULL){
+                lock_release(&mem_pool->lock);
+                return NULL;
+            }
+            bzero(a, PG_SIZE);
+            a->desc = &descs[desc_idx];
+            a->large = false;
+            a->free_block_cnt = descs[desc_idx].blocks_per_arena;
+            uint32_t block_idx;
+
+            enum intr_status old_status = intr_disable();
+            for(block_idx = 0;block_idx < descs[desc_idx].blocks_per_arena; block_idx++){
+                b = arena2block(a, block_idx);
+                ASSERT(!elem_find(&a->desc->free_list, &b->free_elem));
+                list_push_back(&a->desc->free_list, &b->free_elem);
+            }
+            intr_set_status(old_status);
+        }
+        b = elem2entry(struct mem_block, free_elem, list_pop_front(&(descs[desc_idx].free_list)));
+        bzero(b, descs[desc_idx].block_size);
+
+        a = block2arena(b);
+        a->free_block_cnt--;
+        lock_release(&mem_pool->lock);
+        return (void*) b;
+    }
+}
+

@@ -94,5 +94,6 @@ void process_execute(void* filename, char* name){
 
     ASSERT(!elem_find(&thread_all_list, &thread->all_list_tag));
     list_push_back(&thread_all_list, &thread->all_list_tag);
+    block_desc_init((struct mem_block_desc*) &thread->u_block_desc);
     intr_set_status(old_status);
 }

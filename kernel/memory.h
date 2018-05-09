@@ -2,7 +2,8 @@
 #define __KERNEL_MEMORY_H
 #include "stdint.h"
 #include "bitmap.h"
-
+#include "list.h"
+#define DESC_CNT 7  //16 32 64 128 256 512 1024
 //虚拟地址池,用于虚拟地址管理
 struct virtual_addr {
    Bitmap vaddr_bitmap; 
@@ -12,6 +13,16 @@ struct virtual_addr {
 enum pool_flags{
     PF_KERNEL = 1,
     PF_USER = 2
+};
+
+struct mem_block{
+    struct list_elem free_elem;
+};
+
+struct mem_block_desc{
+    uint32_t block_size;
+    uint32_t blocks_per_arena;
+    List free_list;
 };
 
 #define PG_P_1 1//存在位
@@ -31,4 +42,6 @@ uint32_t* pte_ptr(uint32_t vaddr);
 uint32_t* pde_ptr(uint32_t vaddr);
 void *get_a_page(enum pool_flags pf, uint32_t vaddr);
 uint32_t addr_v2p(uint32_t vaddr);
+void block_desc_init(struct mem_block_desc *desc_array);
+void *sys_malloc(uint32_t size);
 #endif

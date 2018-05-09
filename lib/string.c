@@ -7,6 +7,12 @@ void memset(void* dst, uint8_t value, uint32_t size){
         *((uint8_t*)dst++) = value;
 }
 
+void bzero(void* dst, uint32_t size){
+    ASSERT(dst != NULL);
+    while(size--)
+        *((uint8_t*)dst++) = 0;
+}
+
 void memcpy(void* dst, const void* src, uint32_t size){
     ASSERT(dst != NULL && src != NULL && size > 0);
     uint8_t* d = dst;
