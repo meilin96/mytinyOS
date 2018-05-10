@@ -64,7 +64,7 @@ static void* vaddr_pool_apply(enum pool_flags pf, uint32_t pg_cnt){
 }
 
 //***************用于修改页表和页目录表
-//根据虚拟地址返回对应pte的指针(虚拟地址) *pte 就是vaddr所在的物理页的地址
+//根据虚拟地址返回对应pte的指针(虚拟地址)
 uint32_t* pte_ptr(uint32_t vaddr){
     uint32_t* pte = (uint32_t*)(0xffc00000 + ((vaddr & 0xffc00000) >> 10) + PTE_IDX(vaddr) * 4);
     return pte;
@@ -354,3 +354,122 @@ void* sys_malloc(uint32_t size){
     }
 }
 
+//在物理内存池中回收pg_phy_addr所在的页
+void pfree(uint32_t pg_phy_addr){
+    struct pool* mem_pool;
+    uint32_t bit_idx = 0;
+    //根据地址所在的位置判断是哪个物理内存池详见mem_pool_init
+    if(pg_phy_addr >= user_pool.phy_addr_start)
+        mem_pool = &user_pool;
+    else
+        mem_pool = &kernel_pool;
+
+    bit_idx = (pg_phy_addr - mem_pool->phy_addr_start) / PG_SIZE;
+    bitmap_set(&mem_pool->pool_bitmap, bit_idx, 0);
+}
+
+//将vaddr所在页表的pte的P位置0, 达到在页表中去掉虚拟地址映射的目地
+void page_table_pte_remove(uint32_t vaddr){
+    uint32_t* pte = pte_ptr(vaddr);
+    *pte &= ~PG_P_1;
+    //跟新快表
+    asm volatile("invlpg %0"::"m"(vaddr):"memory");
+}
+
+//在虚拟地址池中释放以vaddr为起始地址的连续pg_cnt个虚拟页地址
+void vaddr_remove(enum pool_flags PF, void* _vaddr, uint32_t pg_cnt){
+    uint32_t bit_idx_start = 0, vaddr = (uint32_t)_vaddr, cnt = 0;
+    if(PF == PF_KERNEL){
+        bit_idx_start = (vaddr - kernel_vaddr.vaddr_start) / PG_SIZE;
+        while(cnt < pg_cnt){
+            bitmap_set(&kernel_vaddr.vaddr_bitmap, bit_idx_start + cnt++, 0);
+        }
+    }else{
+        struct task_struct* cur_thread = running_thread();
+        bit_idx_start = (vaddr - cur_thread->userprog_vaddr.vaddr_start) / PG_SIZE;
+        while(cnt < pg_cnt){
+            bitmap_set(&cur_thread->userprog_vaddr.vaddr_bitmap, bit_idx_start + cnt++, 0);
+        }
+    }
+}
+
+//释放以vaddr起始的 连续pgcnt个内存页
+void mfree_page(enum pool_flags PF, void *_vaddr, uint32_t pg_cnt) {
+    uint32_t pg_phy_addr;
+    uint32_t vaddr = (int32_t)_vaddr, page_cnt = 0;
+    ASSERT(pg_cnt >= 1 && vaddr % PG_SIZE == 0);
+    pg_phy_addr = addr_v2p(vaddr);
+
+    //确认释放的空间在低1M + pdt之外
+    ASSERT((pg_phy_addr % PG_SIZE) == 0 && pg_phy_addr >= 0x102000);
+    if (pg_phy_addr >= user_pool.phy_addr_start) {
+        vaddr -= PG_SIZE;
+        while (page_cnt < pg_cnt) {
+            vaddr += PG_SIZE;
+            pg_phy_addr = addr_v2p(vaddr);
+
+            ASSERT((pg_phy_addr % PG_SIZE) == 0 &&
+                   pg_phy_addr >= user_pool.phy_addr_start);
+
+            pfree(pg_phy_addr);
+            page_table_pte_remove(vaddr);
+            page_cnt++;
+        }
+        vaddr_remove(PF, _vaddr, pg_cnt);
+    } else {
+        vaddr -= PG_SIZE;
+        while (page_cnt < pg_cnt) {
+            vaddr += PG_SIZE;
+            pg_phy_addr = addr_v2p(vaddr);
+
+            ASSERT((pg_phy_addr % PG_SIZE) == 0 &&
+                   pg_phy_addr >= kernel_pool.phy_addr_start &&
+                   pg_phy_addr < user_pool.phy_addr_start);
+
+            pfree(pg_phy_addr);
+            page_table_pte_remove(vaddr);
+            page_cnt++;
+        }
+        vaddr_remove(PF, _vaddr, pg_cnt);
+    }
+}
+
+void sys_free(void *ptr) {
+    ASSERT(ptr != NULL);
+    if (ptr != NULL) {
+        enum pool_flags PF;
+        struct pool *mem_pool;
+        if (running_thread()->pgdir == NULL) {
+            ASSERT((uint32_t)ptr >= K_HEAP_START);
+            PF = PF_KERNEL;
+            mem_pool = &kernel_pool;
+        } else {
+            PF = PF_USER;
+            mem_pool = &user_pool;
+        }
+
+        lock_acquire(&mem_pool->lock);
+        struct mem_block *b = ptr;
+        struct arena *a = block2arena(b);
+
+        ASSERT(a->large == 0 || a->large == 1);
+        if (a->desc == NULL && a->large == true) {
+            mfree_page(PF, a, a->free_block_cnt);
+        } else {
+            list_push_back(&a->desc->free_list, &b->free_elem);
+            a->free_block_cnt += 1;
+            //如果arena中的所有block都是空闲状态，就释放整个页
+            if (a->free_block_cnt == a->desc->blocks_per_arena) {
+                uint32_t block_idx;
+                for (block_idx = 0; block_idx < a->desc->blocks_per_arena;
+                     block_idx++) {
+                    struct mem_block *b = arena2block(a, block_idx);
+                    ASSERT(elem_find(&a->desc->free_list, &b->free_elem));
+                    list_remove(&b->free_elem);
+                }
+                mfree_page(PF, a, 1);
+            }
+        }
+        lock_release(&mem_pool->lock);
+    }
+}

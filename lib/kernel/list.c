@@ -1,6 +1,6 @@
 #include "list.h"
 #include "interrupt.h"
-
+#include "debug.h"
 void list_init(List* list ){
     list->head.prev = NULL;
     list->head.next = &list->tail;
@@ -51,6 +51,7 @@ ListElem* list_pop_front(List* list){
 }
 //查找list中是否存在elem
 bool elem_find(List* list, ListElem* elem){
+    ASSERT(list != NULL && elem != NULL);
     ListElem* e = list->head.next;
     while(e != &(list->tail)){
         if(e == elem)
