@@ -292,7 +292,7 @@ void* sys_malloc(uint32_t size){
         PF = PF_USER;
         pool_size = kernel_pool.pool_size;
         mem_pool = &kernel_pool;
-        descs = k_block_desc;
+        descs = cur_thread->u_block_desc;
     }
 
     if(!(size > 0 && size < pool_size)){
