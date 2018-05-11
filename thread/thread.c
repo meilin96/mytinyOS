@@ -13,6 +13,7 @@
 struct task_struct* main_thread;    //主线程pcb
 struct list thread_ready_list;      //就绪队列
 struct list thread_all_list;        //所有task队列
+struct task_struct* idle_thread;
 //队列中的节点都是PCB中的tag，需要完成从tag-->PCB的转换(elem2entry（定义这个变量非必要,可以用局部变量代替
 struct list_elem *thread_tag;
 Lock pid_lock;
@@ -117,6 +118,9 @@ void schedule() {
       不需要将其加入队列,因为当前线程不在就绪队列中。*/
    }
 
+    if(list_empty(&thread_ready_list)){
+        thread_unblock(idle_thread);
+    }
    ASSERT(!list_empty(&thread_ready_list));
    thread_tag = NULL;	  // thread_tag清空
 /* 将thread_ready_list队列中的第一个就绪线程弹出,准备将其调度上cpu. */
@@ -133,6 +137,7 @@ void thread_init(){
     list_init(&thread_all_list);
     lock_init(&pid_lock);
     make_main_thread();
+    idle_thread = thread_start("idle", 10, idle, NULL);
     put_str("thread_init done\n");
 }
 
@@ -159,4 +164,23 @@ void thread_unblock(struct task_struct* thread){
         thread->status = TASK_READY;
     }
     intr_set_status(intr_old_status);
+}
+
+//系统空闲时运行的线程
+static void idle(void* arg){
+    while(1){
+        thread_block(TASK_BLOCKED);
+        asm volatile("sti; hlt" :::"memory");
+    }
+}
+
+//主动把当前进程的cpu使用权让出来
+void thread_yield(){
+    struct task_struct* cur = running_thread();
+    enum intr_status old_status = intr_disable();
+    ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
+    list_push_back(&thread_ready_list, &cur->general_tag);
+    cur->status = TASK_READY;
+    schedule();
+    intr_set_status(old_status);
 }
