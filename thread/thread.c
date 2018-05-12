@@ -14,8 +14,9 @@ struct task_struct* main_thread;    //主线程pcb
 struct list thread_ready_list;      //就绪队列
 struct list thread_all_list;        //所有task队列
 struct task_struct* idle_thread;
-//队列中的节点都是PCB中的tag，需要完成从tag-->PCB的转换(elem2entry（定义这个变量非必要,可以用局部变量代替
-struct list_elem *thread_tag;
+static void idle(void *arg);
+    //队列中的节点都是PCB中的tag，需要完成从tag-->PCB的转换(elem2entry（定义这个变量非必要,可以用局部变量代替
+    struct list_elem *thread_tag;
 Lock pid_lock;
 extern void switch_to(struct task_struct* cur, struct task_struct* next);
 

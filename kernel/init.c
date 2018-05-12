@@ -8,6 +8,7 @@
 #include "console.h"
 #include "tss.h"
 #include "syscall-init.h"
+#include "ide.h"
 /*负责初始化所有模块 */
 void init_all() {
    put_str("init_all\n");
@@ -19,4 +20,5 @@ void init_all() {
    keyboard_init();
    tss_init();
    syscall_init();
+   ide_init();
 }
