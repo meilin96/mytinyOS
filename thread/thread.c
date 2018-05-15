@@ -77,6 +77,14 @@ void init_thread(struct task_struct* pcb, char* tname, int prio){
     pcb->elapsed_ticks = 0;
     pcb->pgdir = NULL;  //how about process? to be continued
     pcb->self_kstack = (uint32_t*)((uint32_t)pcb + PG_SIZE);
+    //预留标准输入输出标准错误
+    pcb->fd_table[0] = 0;
+    pcb->fd_table[1] = 1;
+    pcb->fd_table[2] = 2;
+    uint8_t fd_idx = 3;
+    for(;fd_idx < MAX_FILES_OPEN_PER_PROC; fd_idx++){
+        pcb->fd_table[fd_idx] = -1;
+    }
     pcb->stack_magic = STACK_MAGIC;
 }
 

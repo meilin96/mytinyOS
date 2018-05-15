@@ -3,6 +3,7 @@
 #include "stdint.h"
 #include "list.h"
 #include "memory.h"
+#include "fs.h"
 #define STACK_MAGIC 0x19960521 
 #define DEFAULT_PRIO 31
 typedef void thread_func(void*);
@@ -65,6 +66,7 @@ struct task_struct{
     uint8_t ticks;           //每次在cpu上执行的时间片
     uint32_t elapsed_ticks;  //在cpu上执行的总时间片
     //ready or blocked or ...
+    int32_t fd_table[MAX_FILES_OPEN_PER_PROC];
     ListElem general_tag;
     //用于线程队列thread_all_list
     ListElem all_list_tag;
