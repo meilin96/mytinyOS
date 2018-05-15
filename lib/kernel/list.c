@@ -61,6 +61,7 @@ bool elem_find(List* list, ListElem* elem){
     return false;
 }
 
+//遍历列表对其中的元素做func()
 ListElem* list_traversal(List* list, function func, int arg){
     if(list_empty(list))
         return NULL;

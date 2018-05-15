@@ -1,7 +1,7 @@
 CC = gcc
 AS = nasm
 LD = ld
-LIB = -I lib/ -I lib/kernel -I kernel/ -I device/ -I thread/ -I userprog/ -I lib/user
+LIB = -I lib/ -I lib/kernel -I kernel/ -I device/ -I thread/ -I userprog/ -I lib/user -I fs/
 ASFLAGS = -f elf -o
 CFLAGS = -m32 -W -Wall $(LIB) -c -fno-builtin -o
 ENTRY_POINT = 0xc0001500
@@ -14,7 +14,8 @@ OBJS =  $(BUILD_DIR)/main.o $(BUILD_DIR)/timer.o $(BUILD_DIR)/init.o \
         $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/ioqueue.o $(BUILD_DIR)/print.o \
         $(BUILD_DIR)/switch.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/tss.o \
         $(BUILD_DIR)/process.o $(BUILD_DIR)/syscall.o $(BUILD_DIR)/syscall-init.o \
-        $(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio-kernel.o $(BUILD_DIR)/ide.o
+        $(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio-kernel.o $(BUILD_DIR)/ide.o \
+        $(BUILD_DIR)/fs.o
 
 #--------------------------------C代码
 $(BUILD_DIR)/main.o: kernel/main.c
@@ -80,6 +81,9 @@ $(BUILD_DIR)/stdio-kernel.o: lib/kernel/stdio-kernel.c
 	$(CC) -m32 -W -Wall $(LIB) -c -fno-builtin -fno-stack-protector -o $@ $<
 
 $(BUILD_DIR)/ide.o: device/ide.c
+	$(CC) -m32 -W -Wall $(LIB) -c -fno-builtin -fno-stack-protector -o $@ $<
+
+$(BUILD_DIR)/fs.o: fs/fs.c fs/fs.h
 	$(CC) -m32 -W -Wall $(LIB) -c -fno-builtin -fno-stack-protector -o $@ $<
 
 #--------------------------------汇编代码
