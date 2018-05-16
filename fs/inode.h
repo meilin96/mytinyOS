@@ -4,6 +4,8 @@
 #include "list.h"
 #include "ide.h"
 
+//一级间接块数量
+#define FIRST_LEVEL_INDIRECT_BLOCK_CNTS SECTOR_SIZE / SIZEOF_POINTER
 /* inode结构 */
 struct inode {
    uint32_t i_no;    // inode编号
