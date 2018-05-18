@@ -4,7 +4,6 @@
 #include "list.h"
 #include "stdint.h"
 #include "sync.h"
-
 /* 分区结构 */
 struct partition {
     uint32_t start_lba;         // 起始扇区
@@ -36,8 +35,7 @@ struct ide_channel {
     uint8_t irq_no;     // 本通道所用的中断号
     struct lock lock;
     bool expecting_intr; // 向硬盘发完命令后等待来自硬盘的中断
-    struct semaphore
-        disk_done;          // 硬盘处理完成.线程用这个信号量来阻塞自己，由硬盘完成后产生的中断将线程唤醒
+    struct semaphore disk_done;          // 硬盘处理完成.线程用这个信号量来阻塞自己，由硬盘完成后产生的中断将线程唤醒
     struct disk devices[2]; // 一个通道上连接两个硬盘，一主一从
 };
 

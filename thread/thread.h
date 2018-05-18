@@ -3,7 +3,7 @@
 #include "stdint.h"
 #include "list.h"
 #include "memory.h"
-#include "fs.h"
+#define MAX_FILES_OPEN_PER_PROC 8
 #define STACK_MAGIC 0x19960521 
 #define DEFAULT_PRIO 31
 typedef void thread_func(void*);

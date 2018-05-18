@@ -35,7 +35,7 @@ bool search_dir_entry(struct partition *part, struct dir *pdir,
 
     // 12个直接块大小+128个间接块,共560字节
     uint32_t *all_blocks =
-        (uint32_t *)sys_malloc(48 + FIRST_LEVEL_INDIRECT_BLOCK_CNTS);
+        (uint32_t *)sys_malloc((12 + FIRST_LEVEL_INDIRECT_BLOCK_CNTS) * 4);
     if (all_blocks == NULL) {
         printk("search_dir_entry: sys_malloc for all_blocks failed");
         return false;
@@ -131,7 +131,7 @@ bool sync_dir_entry(struct dir *parent_dir, struct dir_entry *p_de,
 
     /* 将该目录的所有扇区地址(12个直接块+ 128个间接块)存入all_blocks */
     uint8_t block_idx = 0;
-    uint32_t all_blocks[140] = {0}; // all_blocks保存目录所有的块
+    uint32_t all_blocks[INODE_CONTAIN_BLOCK_CNTS] = {0}; // all_blocks保存目录所有的块
 
     /* 将12个直接块存入all_blocks */
     while (block_idx < 12) {
@@ -146,8 +146,9 @@ bool sync_dir_entry(struct dir *parent_dir, struct dir_entry *p_de,
     /* 开始遍历所有块以寻找目录项空位,若已有扇区中没有空闲位,
      * 在不超过文件大小的情况下申请新扇区来存储新目录项 */
     block_idx = 0;
-    while (block_idx <
-           140) { // 文件(包括目录)最大支持12个直接块+128个间接块＝140个块
+    // 文件(包括目录)最大支持12个直接块+128个间接块＝140个块
+    while (         
+        block_idx < INODE_CONTAIN_BLOCK_CNTS) { 
         block_bitmap_idx = -1;
         if (all_blocks[block_idx] == 0) { // 在三种情况下分配块
             block_lba = block_bitmap_alloc(cur_part);
@@ -165,14 +166,15 @@ bool sync_dir_entry(struct dir *parent_dir, struct dir_entry *p_de,
             if (block_idx < 12) { // 若是直接块
                 dir_inode->i_sectors[block_idx] = all_blocks[block_idx] =
                     block_lba;
+                // 若是尚未分配一级间接块表(block_idx等于12表示第0个间接块地址为0)
             } else if (
-                block_idx ==
-                12) { // 若是尚未分配一级间接块表(block_idx等于12表示第0个间接块地址为0)
-                dir_inode->i_sectors[12] =
-                    block_lba; // 将上面分配的块做为一级间接块表地址
+                block_idx == 12) {
+                // 将上面分配的块做为一级间接块表地址
+                dir_inode->i_sectors[12] = block_lba; 
                 block_lba = -1;
-                block_lba =
-                    block_bitmap_alloc(cur_part); // 再分配一个块做为第0个间接块
+                // 再分配一个块做为第0个间接块
+                block_lba = block_bitmap_alloc(cur_part); // 再分配一个块做为第0个间接块
+                //若分配失败则回滚
                 if (block_lba == -1) {
                     block_bitmap_idx =
                         dir_inode->i_sectors[12] - cur_part->sb->data_start_lba;
@@ -211,8 +213,8 @@ bool sync_dir_entry(struct dir *parent_dir, struct dir_entry *p_de,
         /* 在扇区内查找空目录项 */
         uint8_t dir_entry_idx = 0;
         while (dir_entry_idx < dir_entrys_per_sec) {
-            if ((dir_e + dir_entry_idx)->f_type ==
-                FT_UNKNOWN) { // FT_UNKNOWN为0,无论是初始化或是删除文件后,都会将f_type置为FT_UNKNOWN.
+            // FT_UNKNOWN为0,无论是初始化或是删除文件后,都会将f_type置为FT_UNKNOWN.
+            if ((dir_e + dir_entry_idx)->f_type == FT_UNKNOWN) { 
                 memcpy(dir_e + dir_entry_idx, p_de, dir_entry_size);
                 ide_write(cur_part->my_disk, all_blocks[block_idx], io_buf, 1);
 

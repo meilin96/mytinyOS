@@ -15,7 +15,7 @@ OBJS =  $(BUILD_DIR)/main.o $(BUILD_DIR)/timer.o $(BUILD_DIR)/init.o \
         $(BUILD_DIR)/switch.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/tss.o \
         $(BUILD_DIR)/process.o $(BUILD_DIR)/syscall.o $(BUILD_DIR)/syscall-init.o \
         $(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio-kernel.o $(BUILD_DIR)/ide.o \
-        $(BUILD_DIR)/fs.o
+        $(BUILD_DIR)/fs.o $(BUILD_DIR)/dir.o $(BUILD_DIR)/inode.o $(BUILD_DIR)/file.o
 
 #--------------------------------C代码
 $(BUILD_DIR)/main.o: kernel/main.c
@@ -86,6 +86,14 @@ $(BUILD_DIR)/ide.o: device/ide.c
 $(BUILD_DIR)/fs.o: fs/fs.c fs/fs.h
 	$(CC) -m32 -W -Wall $(LIB) -c -fno-builtin -fno-stack-protector -o $@ $<
 
+$(BUILD_DIR)/dir.o: fs/dir.c
+	$(CC) -m32 -W -Wall $(LIB) -c -fno-builtin -fno-stack-protector -o $@ $<
+
+$(BUILD_DIR)/inode.o: fs/inode.c
+	$(CC) -m32 -W -Wall $(LIB) -c -fno-builtin -fno-stack-protector -o $@ $<
+
+$(BUILD_DIR)/file.o: fs/file.c
+	$(CC) -m32 -W -Wall $(LIB) -c -fno-builtin -fno-stack-protector -o $@ $<
 #--------------------------------汇编代码
 $(BUILD_DIR)/kernel.o: kernel/kernel.S
 	$(AS) $(ASFLAGS) $@ $<

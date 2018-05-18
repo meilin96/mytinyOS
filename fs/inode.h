@@ -6,6 +6,9 @@
 
 //一级间接块数量
 #define FIRST_LEVEL_INDIRECT_BLOCK_CNTS SECTOR_SIZE / SIZEOF_POINTER
+#define SECOND_LEVEL_INDIRECT_BLOCK_CNTS 0
+#define INODE_CONTAIN_BLOCK_CNTS                                               \
+    (12 + FIRST_LEVEL_INDIRECT_BLOCK_CNTS + SECOND_LEVEL_INDIRECT_BLOCK_CNTS)
 /* inode结构 */
 struct inode {
    uint32_t i_no;    // inode编号

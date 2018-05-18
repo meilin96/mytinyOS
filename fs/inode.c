@@ -109,7 +109,7 @@ struct inode* inode_open(struct partition* part, uint32_t inode_no){
     memcpy(inode_found, inode_buf + inode_pos.off_size, sizeof(struct inode));
 
     /* 因为一会很可能要用到此inode,故将其插入到队首便于提前检索到 */
-    list_push(&part->open_inodes, &inode_found->inode_tag);
+    list_push_front(&part->open_inodes, &inode_found->inode_tag);
     inode_found->i_open_cnts = 1;
 
     sys_free(inode_buf);
