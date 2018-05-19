@@ -82,6 +82,7 @@ uint32_t strchrs(const char* str, uint8_t ch){
     return cnt;
 }
 
+//从后往前查找ch首次在string中出现的位置
 char* strrchr(const char* string, const uint8_t ch){
     ASSERT(string != NULL);
     const char* last_char = NULL;

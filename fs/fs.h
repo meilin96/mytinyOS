@@ -30,5 +30,7 @@ struct path_search_record{
 };
 
 void filesys_init(void);
-extern struct partition* cur_part;
+int32_t path_depth_cnt(char* pathname);
+int32_t sys_open(const char *pathname, uint8_t flags);
+extern struct partition *cur_part;
 #endif

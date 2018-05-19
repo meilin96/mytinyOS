@@ -169,7 +169,7 @@ void thread_unblock(struct task_struct* thread){
         if(elem_find(&thread_ready_list, &thread->general_tag)){
             PANIC("thread_unblock:blocked thread in ready list!");
         }
-        list_push_back(&thread_ready_list, &thread->general_tag);
+        list_push_front(&thread_ready_list, &thread->general_tag);
         thread->status = TASK_READY;
     }
     intr_set_status(intr_old_status);
