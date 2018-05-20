@@ -247,6 +247,7 @@ static int search_file(const char *pathname,
     uint32_t parent_inode_no = 0; // 父目录的inode号
 
     sub_path = path_parse(sub_path, name);
+    // printk("in search_file, name: %s", name);
     while (name[0]) { // 若第一个字符就是结束符,结束循环
         /* 记录查找过的路径,但不能超过searched_path的长度512字节 */
         ASSERT(strlen(searched_record->searched_path) < 512);
@@ -254,7 +255,7 @@ static int search_file(const char *pathname,
         /* 记录已存在的父目录 */
         strcat(searched_record->searched_path, "/");
         strcat(searched_record->searched_path, name);
-
+        // printk("in search_file searched_path: %s", searched_record->searched_path);
         /* 在所给的目录中查找文件 */
         if (search_dir_entry(cur_part, parent_dir, name, &dir_e)) {
             memset(name, 0, MAX_FILE_NAME_LEN);
@@ -402,9 +403,9 @@ int32_t sys_open(const char *pathname, uint8_t flags) {
 
     /* 先检查文件是否存在 */
     int inode_no = search_file(pathname, &searched_record);
-    printk("\n searched_path: %s\n parent_dir_inode: %d\n file_type: %d\n",
-           searched_record.searched_path,
-           searched_record.parent_dir->inode->i_no, searched_record.file_type);
+    // printk("\n searched_path: %s\n parent_dir_inode: %d\n file_type: %d\n",
+    //        searched_record.searched_path,
+    //        searched_record.parent_dir->inode->i_no, searched_record.file_type);
     bool found = inode_no != -1 ? true : false;
 
     if (searched_record.file_type == FT_DIRECTORY) {
@@ -416,8 +417,9 @@ int32_t sys_open(const char *pathname, uint8_t flags) {
 
     uint32_t path_searched_depth =
         path_depth_cnt(searched_record.searched_path);
-
+    // printk("searched_path: %s\n", searched_record.searched_path);
     /* 先判断是否把pathname的各层目录都访问到了,即是否在某个中间目录就失败了 */
+    // printk("pathname_depth = %d, path_searched_depth = %d\n", pathname_depth, path_searched_depth);
     if (pathname_depth !=
         path_searched_depth) { // 说明并没有访问到全部的路径,某个中间目录是不存在的
         printk("cannot access %s: Not a directory, subpath %s is`t exist\n",

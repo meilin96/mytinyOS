@@ -86,7 +86,7 @@ uint32_t strchrs(const char* str, uint8_t ch){
 char* strrchr(const char* string, const uint8_t ch){
     ASSERT(string != NULL);
     const char* last_char = NULL;
-    while(string != '\0'){
+    while(*string != '\0'){
         if(*string == ch){
             last_char = string;
         }
@@ -96,12 +96,13 @@ char* strrchr(const char* string, const uint8_t ch){
 }
 
 //将字符串src拼接到dst后，返回拼接的地址
-char* strcat(char* dst, const char* src){
-    ASSERT(dst != NULL && src != NULL);
-    char* str = dst;
-    while(*str != '\0')
-        str++;
-    while(*(str)++ != *(src)++ );
-
-    return dst;
+char *strcat(char *dst_, const char *src_) {
+    ASSERT(dst_ != NULL && src_ != NULL);
+    char *str = dst_;
+    while (*str++)
+        ;
+    --str;
+    while ((*str++ = *src_++))
+        ; // 当*str被赋值为0时,此时表达式不成立,正好添加了字符串结尾的0.
+    return dst_;
 }
