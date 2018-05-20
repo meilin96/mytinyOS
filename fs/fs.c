@@ -11,6 +11,7 @@
 #include "string.h"
 #include "super_block.h"
 #include "file.h"
+#include "console.h"
 static char* path_parse(char* pathname, char* name_store);
 struct partition *cur_part; //默认情况下操作的分区
 
@@ -474,4 +475,27 @@ int32_t sys_close(int32_t fd) {
         running_thread()->fd_table[fd] = -1;
     }
     return ret;
+}
+
+uint32_t sys_write(int32_t fd, const void *buf, uint32_t count) {
+    if (fd < 0) {
+        printk("sys_write: fd error\n");
+        return -1;
+    }
+    if (fd == stdout_no) {
+        char tmp_buf[1024] = {0};
+        memcpy(tmp_buf, buf, count);
+        console_put_str(tmp_buf);
+        return count;
+    }
+    uint32_t _fd = fd_loacl2global(fd);
+    struct file *wr_file = &file_table[_fd];
+    if (wr_file->fd_flag & O_WRONLY || wr_file->fd_flag & O_RDWR) {
+        uint32_t bytes_written = file_write(wr_file, buf, count);
+        return bytes_written;
+    } else {
+        console_put_str("sys_write: not allowed to write file without flag "
+                        "O_RDWR or O_WRONLY\n");
+        return -1;
+    }
 }

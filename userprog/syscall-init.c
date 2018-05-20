@@ -6,17 +6,15 @@
 #include "console.h"
 #include "string.h"
 #include "memory.h"
+#include "stdio-kernel.h"
+#include "file.h"
+#include "fs.h"
 #define syscall_nr 32 //最大支持系统调用子功能数
 typedef void* syscall;
 syscall syscall_table[syscall_nr];
 
 uint32_t sys_getpid(void){
     return running_thread()->pid;
-}
-
-uint32_t sys_write(char* str){
-    console_put_str(str);
-    return strlen(str);
 }
 
 void syscall_init(){

@@ -9,7 +9,7 @@ enum SYSCALL_NR{
 };
 
 uint32_t getpid();
-uint32_t write(char* str);  //简易的write
+uint32_t write(int32_t fd, const void* buf, uint32_t count);  //简易的write
 void* malloc(uint32_t size);
 void free(void* ptr);
 #endif
