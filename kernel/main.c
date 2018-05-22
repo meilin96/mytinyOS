@@ -1,4 +1,5 @@
 #include "console.h"
+#include "file.h"
 #include "fs.h"
 #include "init.h"
 #include "interrupt.h"
@@ -6,11 +7,10 @@
 #include "print.h"
 #include "process.h"
 #include "stdio.h"
+#include "string.h"
 #include "syscall-init.h"
 #include "syscall.h"
 #include "thread.h"
-#include "string.h"
-#include "file.h"
 void k_thread_a(void *);
 void k_thread_b(void *);
 void u_prog_a(void);
@@ -23,27 +23,30 @@ int main(void) {
     // process_execute(u_prog_b, "u_prog_b");
     //    thread_start("k_thread_a", 31, k_thread_a, "I am thread_a");
     //    thread_start("k_thread_b", 31, k_thread_b, "I am thread_b");
-    uint32_t fd = sys_open("/file1", O_RDWR);
-    printf("open /file1, fd: %d\n", fd);
-    printf("/fiel1 size: %d\n", file_table[fd].fd_inode->i_size);
-    char buf[64] = {0};
-    int read_bytes = sys_read(fd, buf, 18);
-    printf("1_ read %d bytes: \n%s\n", read_bytes, buf);
-    // bzero(buf, 64);
-    // read_bytes = sys_read(fd, buf, 6);
-    // printf("2_ read %d bytes: \n%s\n", read_bytes, buf);
-    // bzero(buf, 64);
-    // read_bytes = sys_read(fd, buf, 6);
-    // printf("3 _read %d bytes: \n %s\n", read_bytes, buf);
-    printf("________SEEK_SET 0 ________\n");
-    sys_lseek(fd, 6, SEEK_CUR);
-    bzero(buf, 64);
-    read_bytes = sys_read(fd, buf, 64);
-    printf("4_ read %d bytes:\n%s\n", read_bytes, buf);
-    sys_close(fd);
+    printf("remove file1: %d\n", sys_unlink("/file1"));
+    // printf("remove dir: %d\n", sys_unlink("/dir1/subdir1"));
+    printf("remove file2: %d\n", sys_unlink("/dir1/subdir1/file2"));
+    printf("/dir2/subdir2 create %s !\n",
+           sys_mkdir("/dir2/subdir2") == 0 ? "done" : "fail");
+    printf("/dir1/subdir1 create %s !\n",
+           sys_mkdir("/dir1/subdir1") == 0 ? "done" : "fail");
+    printf("/dir1 create %s !\n", sys_mkdir("/dir1") == 0 ? "done" : "fail");
+    printf("now, /dir1/subdir1 create %s !\n",
+           sys_mkdir("/dir1/subdir1") == 0 ? "done" : "fail");
+    int fd = sys_open("/dir1/subdir1/file1", O_CREAT | O_RDWR);
+    
+    if(fd != -1){
+        printf("/dir1/subdi1/file2 create done!\n");
+        sys_write(fd , "Catch me if you can!\n", 21);
+        sys_lseek(fd, 0, SEEK_SET);
+        char buf[32] = {0};
+        sys_read(fd, buf ,21);
+        printf("/dir1/subdir1/file2 says:\n%s", buf);
+        sys_close(fd);
+    }
     while (1)
         ;
-        (void)0;
+    (void)0;
     return 0;
 }
 
