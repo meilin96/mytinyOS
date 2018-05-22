@@ -23,6 +23,12 @@ enum oflags{
     O_CREAT = 4
 };
 
+enum whence {
+    SEEK_SET = 1, //offset的参照物是文件开始处
+    SEEK_CUR,      //当前位置
+    SEEK_END        //文件结束处的下一字节
+};
+
 struct path_search_record{
     char searched_path[MAX_PATH_LEN]; //查找过的路径
     struct dir* parent_dir;     //
@@ -34,5 +40,7 @@ int32_t path_depth_cnt(char* pathname);
 int32_t sys_open(const char *pathname, uint8_t flags);
 int32_t sys_close(int32_t fd);
 uint32_t sys_write(int32_t fd, const void *buf, uint32_t count);
+int32_t sys_read(int32_t fd, void* buf, uint32_t count);
+int32_t sys_lseek(int32_t fd, int32_t offset, uint8_t whence);
 extern struct partition *cur_part;
 #endif
