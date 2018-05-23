@@ -19,9 +19,7 @@ struct partition *cur_part; //默认情况下操作的分区
 static bool mount_partition(ListElem *pelem, int arg) {
     char *part_name = (char *)arg;
     struct partition *part = elem2entry(struct partition, part_tag, pelem);
-    printk("part_name: %s, part->name: %s\n", part_name, part->name);
-    ASSERT(1 == 2);
-    if (!strcmp(part_name, part->name)) {
+    if (!strcmp(part->name, part_name)) {
         cur_part = part;
         struct disk *hd = cur_part->my_disk;
         struct super_block *sb_buf =
@@ -31,7 +29,7 @@ static bool mount_partition(ListElem *pelem, int arg) {
             (struct super_block *)sys_malloc(sizeof(struct super_block));
 
         if (cur_part->sb == NULL) {
-            PANIC("alloc memory for sb_buf failed!");
+            PANIC("alloc memory failed!");  //???
         }
         //读入超级块
         memset(sb_buf, 0, SECTOR_SIZE);
@@ -42,7 +40,7 @@ static bool mount_partition(ListElem *pelem, int arg) {
         cur_part->block_bitmap.bits =
             (uint8_t *)sys_malloc(sb_buf->block_bitmap_sects * SECTOR_SIZE);
         if (cur_part->block_bitmap.bits == NULL) {
-            PANIC("alloc memory for block_bitmap failed!");
+            PANIC("alloc memory failed!");  //???
         }
         cur_part->block_bitmap.btmp_bytes_len =
             sb_buf->block_bitmap_sects * SECTOR_SIZE;
@@ -50,9 +48,9 @@ static bool mount_partition(ListElem *pelem, int arg) {
                  sb_buf->block_bitmap_sects);
         //读入inode位图
         cur_part->inode_bitmap.bits =
-            (uint8_t *)sys_malloc(sb_buf->block_bitmap_sects * SECTOR_SIZE);
+            (uint8_t *)sys_malloc(sb_buf->inode_bitmap_sects * SECTOR_SIZE);
         if (cur_part->inode_bitmap.bits == NULL) {
-            PANIC("alloc memory for inode_bitmap failed!");
+            PANIC("alloc memory failed!");  //???
         }
         
         cur_part->inode_bitmap.btmp_bytes_len =
@@ -65,6 +63,13 @@ static bool mount_partition(ListElem *pelem, int arg) {
         printk("mount %s done!\n", part->name);
         sys_free(sb_buf);
         return true;
+    }else{
+        //???? to be continued
+        // char* p = part->name;
+        // for(;*p != '/0';p++){
+        //     printk("%c : %d\n", *p, (uint32_t)*p);
+        // }
+        // printk("part->name :   %s\n", part->name);
     }
     return false;
 }
@@ -480,7 +485,7 @@ int32_t sys_close(int32_t fd) {
     return ret;
 }
 
-uint32_t sys_write(int32_t fd, const void *buf, uint32_t count) {
+int32_t sys_write(int32_t fd, const void *buf, uint32_t count) {
     if (fd < 0) {
         printk("sys_write: fd error\n");
         return -1;
