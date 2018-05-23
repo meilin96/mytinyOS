@@ -309,6 +309,7 @@ static void partition_scan(struct disk *hd, uint32_t ext_lba) {
                 hd->prim_parts[p_no].sec_cnt = p->sec_cnt;
                 hd->prim_parts[p_no].my_disk = hd;
                 list_append(&partition_list, &hd->prim_parts[p_no].part_tag);
+                memset(hd->prim_parts[p_no].name, 0, 8);
                 sprintf(hd->prim_parts[p_no].name, "%s%d", hd->name, p_no + 1);
                 p_no++;
                 ASSERT(p_no < 4); // 0,1,2,3
@@ -404,6 +405,7 @@ void ide_init() {
             struct disk *hd = &channel->devices[dev_no];
             hd->my_channel = channel;
             hd->dev_no = dev_no;
+            memset(hd->name, 0, 8);
             sprintf(hd->name, "sd%c", 'a' + channel_no * 2 + dev_no);
             identify_disk(hd); // 获取硬盘参数
             if (dev_no != 0) { // 内核本身的裸硬盘(hd60M.img)不处理

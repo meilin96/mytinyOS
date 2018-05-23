@@ -19,8 +19,6 @@ struct partition *cur_part; //默认情况下操作的分区
 static bool mount_partition(ListElem *pelem, int arg) {
     char *part_name = (char *)arg;
     struct partition *part = elem2entry(struct partition, part_tag, pelem);
-    printk("part_name: %s, part->name: %s\n", part_name, part->name);
-    ASSERT(1 == 2);
     if (!strcmp(part_name, part->name)) {
         cur_part = part;
         struct disk *hd = cur_part->my_disk;
@@ -480,7 +478,7 @@ int32_t sys_close(int32_t fd) {
     return ret;
 }
 
-uint32_t sys_write(int32_t fd, const void *buf, uint32_t count) {
+int32_t sys_write(int32_t fd, const void *buf, uint32_t count) {
     if (fd < 0) {
         printk("sys_write: fd error\n");
         return -1;
@@ -773,31 +771,34 @@ struct dir_entry *sys_readdir(struct dir *dir) {
 void sys_rewinddir(struct dir *dir) { dir->dir_pos = 0; }
 
 //删除空目录，返回0,失败返回-1
-int32_t sys_rmdir(const char* pathname) {
-   /* 先检查待删除的文件是否存在 */
-   struct path_search_record searched_record;
-   memset(&searched_record, 0, sizeof(struct path_search_record));
-   int inode_no = search_file(pathname, &searched_record);
-   ASSERT(inode_no != 0);
-   int retval = -1;	// 默认返回值
-   printk("pathname: %s , inode_no: %d\n", pathname, inode_no);
-   if (inode_no == -1) {
-      printk("In %s, sub path %s not exist\n", pathname, searched_record.searched_path); 
-   } else {
-      if (searched_record.file_type == FT_REGULAR) {
-	 printk("%s is regular file!\n", pathname);
-      } else { 
-	 struct dir* dir = dir_open(cur_part, inode_no);
-	 if (!dir_is_empty(dir)) {	 // 非空目录不可删除
-	    printk("dir %s is not empty, it is not allowed to delete a nonempty directory!\n", pathname);
-	 } else {
-	    if (!dir_remove(searched_record.parent_dir, dir)) {
-	       retval = 0;
-	    }
-	 }
-	 dir_close(dir);
-      }
-   }
-   dir_close(searched_record.parent_dir);
-   return retval;
+int32_t sys_rmdir(const char *pathname) {
+    /* 先检查待删除的文件是否存在 */
+    struct path_search_record searched_record;
+    memset(&searched_record, 0, sizeof(struct path_search_record));
+    int inode_no = search_file(pathname, &searched_record);
+    ASSERT(inode_no != 0);
+    int retval = -1; // 默认返回值
+    printk("pathname: %s , inode_no: %d\n", pathname, inode_no);
+    if (inode_no == -1) {
+        printk("In %s, sub path %s not exist\n", pathname,
+               searched_record.searched_path);
+    } else {
+        if (searched_record.file_type == FT_REGULAR) {
+            printk("%s is regular file!\n", pathname);
+        } else {
+            struct dir *dir = dir_open(cur_part, inode_no);
+            if (!dir_is_empty(dir)) { // 非空目录不可删除
+                printk("dir %s is not empty, it is not allowed to delete a "
+                       "nonempty directory!\n",
+                       pathname);
+            } else {
+                if (!dir_remove(searched_record.parent_dir, dir)) {
+                    retval = 0;
+                }
+            }
+            dir_close(dir);
+        }
+    }
+    dir_close(searched_record.parent_dir);
+    return retval;
 }
