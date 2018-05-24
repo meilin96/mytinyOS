@@ -35,6 +35,13 @@ struct path_search_record{
     enum file_types file_type;  //文件or目录
 };
 
+//文件属性
+struct stat{
+    uint32_t st_ino;
+    uint32_t st_size;
+    enum file_types st_filetype;
+};
+
 void filesys_init(void);
 int32_t path_depth_cnt(char* pathname);
 int32_t sys_open(const char *pathname, uint8_t flags);
@@ -48,5 +55,8 @@ struct dir *sys_opendir(const char *name);
 int32_t sys_closedir(struct dir *dir);
 struct dir_entry *sys_readdir(struct dir *dir);
 void sys_rewinddir(struct dir *dir);
+char *sys_getcwd(char *buf, uint32_t size);
+int32_t sys_chdir(const char *path);
+uint32_t sys_stat(const char *path, struct stat *buf);
 extern struct partition *cur_part;
 #endif

@@ -85,6 +85,7 @@ void init_thread(struct task_struct* pcb, char* tname, int prio){
     for(;fd_idx < MAX_FILES_OPEN_PER_PROC; fd_idx++){
         pcb->fd_table[fd_idx] = -1;
     }
+    pcb->cwd_inode_nr = 0;  //根目录为默认工作路径
     pcb->stack_magic = STACK_MAGIC;
 }
 

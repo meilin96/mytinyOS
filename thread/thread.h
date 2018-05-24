@@ -74,6 +74,7 @@ struct task_struct{
     struct virtual_addr userprog_vaddr; //进程的虚拟地址池
     struct mem_block_desc u_block_desc[DESC_CNT];
     char name[16];
+    uint32_t cwd_inode_nr;  //但前工作目录路径
     uint32_t stack_magic;    //栈边界标记，用于检测栈溢出
 };
 
