@@ -75,6 +75,7 @@ struct task_struct{
     struct mem_block_desc u_block_desc[DESC_CNT];
     char name[16];
     uint32_t cwd_inode_nr;  //但前工作目录路径
+    int16_t parent_id;      //父进程pid
     uint32_t stack_magic;    //栈边界标记，用于检测栈溢出
 };
 
@@ -90,4 +91,5 @@ void thread_init();
 void thread_block(enum task_status stat);
 void thread_unblock(struct task_struct* thread);
 void thread_yield();
+pid_t fork_pid();
 #endif

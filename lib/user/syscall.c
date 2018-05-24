@@ -1,5 +1,6 @@
 #include "syscall.h"
 #include "stdint.h"
+#include "thread.h"
 #define _syscall0(NUMBER)                                                      \
     ({                                                                         \
         int res;                                                               \
@@ -34,3 +35,5 @@ uint32_t write(int32_t fd, const void* buf, uint32_t count) { return _syscall3(S
 void *malloc(uint32_t size) { return (void *)_syscall1(SYS_MALLOC, size); }
 
 void free(void *ptr) { _syscall1(SYS_FREE, ptr); }
+
+pid_t fork(){ return _syscall0(SYS_FORK); }

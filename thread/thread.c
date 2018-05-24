@@ -19,7 +19,7 @@ static void idle(void *arg);
     struct list_elem *thread_tag;
 Lock pid_lock;
 extern void switch_to(struct task_struct* cur, struct task_struct* next);
-
+extern void init();
 struct task_struct* running_thread(){
     uint32_t esp;
     asm("mov %%esp, %0":"=g"(esp));
@@ -86,6 +86,7 @@ void init_thread(struct task_struct* pcb, char* tname, int prio){
         pcb->fd_table[fd_idx] = -1;
     }
     pcb->cwd_inode_nr = 0;  //根目录为默认工作路径
+    pcb->parent_id = -1;    
     pcb->stack_magic = STACK_MAGIC;
 }
 
@@ -146,6 +147,7 @@ void thread_init(){
     list_init(&thread_ready_list);
     list_init(&thread_all_list);
     lock_init(&pid_lock);
+    process_execute(init, "init");
     make_main_thread();
     idle_thread = thread_start("idle", 10, idle, NULL);
     put_str("thread_init done\n");
@@ -193,4 +195,8 @@ void thread_yield(){
     cur->status = TASK_READY;
     schedule();
     intr_set_status(old_status);
+}
+
+pid_t fork_pid(){
+    return allocate_pid();
 }

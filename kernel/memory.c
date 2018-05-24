@@ -473,3 +473,17 @@ void sys_free(void *ptr) {
         lock_release(&mem_pool->lock);
     }
 }
+
+//分配一页不操作虚拟位图，用于fork中子进程复制父进程的数据
+void *get_a_page_without_opvaddrbitmap(enum pool_flags pf, uint32_t vaddr) {
+    struct pool *mem_pool = pf == PF_KERNEL ? &kernel_pool : &user_pool;
+    lock_acquire(&mem_pool->lock);
+    void *page_phyaddr = phy_page_alloc(mem_pool);
+    if(page_phyaddr == NULL){
+        lock_release(&mem_pool->lock);
+        return NULL;
+    }
+    page_table_add((void *)vaddr, page_phyaddr);
+    lock_release(&mem_pool->lock);
+    return (void *)vaddr;
+}
