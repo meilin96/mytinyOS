@@ -11,6 +11,7 @@
 #include "syscall-init.h"
 #include "syscall.h"
 #include "thread.h"
+#include "shell.h"
 void k_thread_a(void *);
 void k_thread_b(void *);
 void u_prog_a(void);
@@ -20,6 +21,8 @@ void init();
 int main(void) {
     put_str("I am kernel\n");
     init_all();
+    cls_screen();
+    
     /********  测试代码  ********/
     // char cwd_buf[32] = {0};
     // sys_getcwd(cwd_buf, 32);
@@ -47,13 +50,13 @@ int main(void) {
 void init() {
     uint32_t ret_pid = fork();
     if (ret_pid) {
-        printf("I am father, my pid is %d, child pid is %d\n", getpid(),
-               ret_pid);
+        // printf("I am father, my pid is %d, child pid is %d\n", getpid(),
+        //    ret_pid);
+        while (1)
+            ;
     } else {
-        printf("I am child, my pid is %d, ret pid is %d \n", getpid(), ret_pid);
+        my_shell();
     }
-    while (1)
-        ;
 }
 
 /* 在线程中运行的函数 */
