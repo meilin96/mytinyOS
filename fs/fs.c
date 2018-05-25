@@ -14,7 +14,7 @@
 #include "console.h"
 #include "keyboard.h"
 #include "ioqueue.h"
-static char* path_parse(char* pathname, char* name_store);
+char* path_parse(char* pathname, char* name_store);
 struct partition *cur_part; //默认情况下操作的分区
 
 //挂载分区，也就是把磁盘中的元信息读入到内存
@@ -361,7 +361,7 @@ void filesys_init() {
 }
 
 //解析路径最上层的路径名,如/a/b/c -> a, return /b/c
-static char* path_parse(char* pathname, char* name_store){
+char* path_parse(char* pathname, char* name_store){
     if(pathname[0] == '/'){
         while(*(++pathname) == '/');
     }

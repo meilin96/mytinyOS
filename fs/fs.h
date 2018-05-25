@@ -60,5 +60,6 @@ int32_t sys_chdir(const char *path);
 uint32_t sys_stat(const char *path, struct stat *buf);
 void sys_putchar(char c);
 int32_t sys_rmdir(const char *pathname) ;
+char* path_parse(char* pathname, char* name_store);
 extern struct partition *cur_part;
 #endif

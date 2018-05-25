@@ -51,28 +51,31 @@ int32_t argc = -1;
 
 void my_shell(){
     cwd_cache[0] = '/';
-    while(1){
+    cwd_cache[1] = 0;
+    while (1) {
         print_prompt();
-        memset(cmd_line, 0, CMD_LEN);
         memset(final_path, 0, MAX_PATH_LEN);
-        readline(cmd_line, CMD_LEN);
-        if(cmd_line[0] == 0){
+        memset(cmd_line, 0, MAX_PATH_LEN);
+        readline(cmd_line, MAX_PATH_LEN);
+        if (cmd_line[0] == 0) { // 若只键入了一个回车
             continue;
         }
         argc = -1;
         argc = cmd_parse(cmd_line, argv, ' ');
-        if(argc == -1){
+        if (argc == -1) {
             printf("num of arguments exceed %d\n", MAX_ARG_NR);
             continue;
         }
+
+        char buf[MAX_PATH_LEN] = {0};
         int32_t arg_idx = 0;
-        while(arg_idx < argc){
-            printf("%s ", argv[arg_idx]);
+        while (arg_idx < argc) {
+            make_clear_abs_path(argv[arg_idx], buf);
+            printf("%s -> %s\n", argv[arg_idx], buf);
             arg_idx++;
         }
-        printf("\n");
+        PANIC("my_shell: should not be here");
     }
-    PANIC("my_shell: should not be here");
 }
 
 /* 分析字符串cmd_str中以token为分隔符的单词,将各单词的指针存入argv数组 */
