@@ -46,7 +46,7 @@ $(BUILD_DIR)/memory.o: kernel/memory.c
 	$(CC) $(CFLAGS) $@ $<
 
 $(BUILD_DIR)/thread.o: thread/thread.c 
-	$(CC) $(CFLAGS) $@ $<
+	$(CC) -m32 -W -Wall $(LIB) -c -fno-builtin -fno-stack-protector -o $@ $<
 
 $(BUILD_DIR)/list.o: lib/kernel/list.c 
 	$(CC) $(CFLAGS) $@ $<
