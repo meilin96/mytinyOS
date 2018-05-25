@@ -191,12 +191,12 @@ static void intr_keyboard_handler(void) {
       if (cur_char) {
           if(!ioq_full(&kbd_buf)){
             ioq_putchar(&kbd_buf, cur_char);
-            put_char(cur_char);
-            put_str(" head, tail: ");
-            put_int(kbd_buf.head);
-            put_str(", ");
-            put_int(kbd_buf.tail);
-            put_char('\n');
+          //  put_char(cur_char);
+        //    put_str(" head, tail: ");
+           // put_int(kbd_buf.head);
+        //    put_str(", ");
+          //  put_int(kbd_buf.tail);
+           // put_char('\n');
           }
           return ;
       }

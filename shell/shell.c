@@ -47,7 +47,6 @@ static void readline(char *buf, int32_t count) {
 void my_shell(){
     cwd_cache[0] = '/';
     while(1){
-        ASSERT(1 == 2);
         print_prompt();
         memset(cmd_line, 0, CMD_LEN);
         readline(cmd_line, CMD_LEN);

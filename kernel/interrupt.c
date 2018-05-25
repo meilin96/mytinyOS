@@ -49,14 +49,8 @@ static void pic_init(void) {
    outb (PIC_S_DATA, 0x02);    // ICW3: 设置从片连接到主片的IR2引脚
    outb (PIC_S_DATA, 0x01);    // ICW4: 8086模式, 正常EOI
 
-   /* 打开主片上IR0,也就是目前只接受时钟产生的中断 */
-   outb (PIC_M_DATA, 0xfe);
-   outb (PIC_S_DATA, 0xff);
-   //测试键盘，只打开键盘中断
-   outb (PIC_M_DATA, 0xfc);
-   outb (PIC_S_DATA, 0xff);
-    outb(PIC_M_DATA, 0xf8);
-    outb(PIC_S_DATA, 0xbf);
+   outb(PIC_M_DATA, 0xf8);
+   outb(PIC_S_DATA, 0xbf);
    put_str("   pic_init done\n");
 }
 
@@ -100,7 +94,7 @@ static void general_intr_handler(uint8_t vec_nr) {
         asm("movl %%cr2, %0" : "=r"(page_fault_vaddr));
         put_str("\npage fault addr is ");put_int(page_fault_vaddr);
     }
-    put_str("\n!!!!!!   excep   tion message end   !!!!!!\n");
+    put_str("\n!!!!!!   exception message end   !!!!!!\n");
    //put_str("int vector: 0x");
    //put_int(vec_nr);
    //put_str(": ");put_str(intr_name[vec_nr]);

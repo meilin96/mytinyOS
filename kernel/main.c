@@ -22,7 +22,7 @@ int main(void) {
     put_str("I am kernel\n");
     init_all();
     cls_screen();
-    
+    print_prompt();
     /********  测试代码  ********/
     // char cwd_buf[32] = {0};
     // sys_getcwd(cwd_buf, 32);
@@ -50,8 +50,8 @@ int main(void) {
 void init() {
     uint32_t ret_pid = fork();
     if (ret_pid) {
-        // printf("I am father, my pid is %d, child pid is %d\n", getpid(),
-        //    ret_pid);
+        printf("I am father, my pid is %d, child pid is %d\n", getpid(),
+           ret_pid);
         while (1)
             ;
     } else {
