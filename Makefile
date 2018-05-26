@@ -16,7 +16,7 @@ OBJS =  $(BUILD_DIR)/main.o $(BUILD_DIR)/timer.o $(BUILD_DIR)/init.o \
         $(BUILD_DIR)/process.o $(BUILD_DIR)/syscall.o $(BUILD_DIR)/syscall-init.o \
         $(BUILD_DIR)/stdio.o $(BUILD_DIR)/stdio-kernel.o $(BUILD_DIR)/ide.o \
         $(BUILD_DIR)/fs.o $(BUILD_DIR)/dir.o $(BUILD_DIR)/inode.o $(BUILD_DIR)/file.o \
-        $(BUILD_DIR)/fork.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/buildin_cmd.o
+        $(BUILD_DIR)/fork.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/buildin_cmd.o $(BUILD_DIR)/assert.o
 
 #--------------------------------C代码
 $(BUILD_DIR)/main.o: kernel/main.c
@@ -75,6 +75,9 @@ $(BUILD_DIR)/syscall-init.o: userprog/syscall-init.c
 $(BUILD_DIR)/syscall.o: lib/user/syscall.c 
 	$(CC) $(CFLAGS) $@ $<
 
+$(BUILD_DIR)/assert.o: lib/user/assert.c 
+	$(CC) $(CFLAGS) $@ $<
+
 $(BUILD_DIR)/stdio.o: lib/stdio.c
 	$(CC) -m32 -W -Wall $(LIB) -c -fno-builtin -fno-stack-protector -o $@ $<
 
@@ -100,7 +103,9 @@ $(BUILD_DIR)/fork.o: userprog/fork.c
 	$(CC) $(CFLAGS) $@ $<
 
 $(BUILD_DIR)/shell.o: shell/shell.c
-	$(CC) $(CFLAGS) $@ $<
+	$(CC) -m32 -W -Wall $(LIB) -c -fno-builtin -fno-stack-protector -o $@ $<
+	#$(CC) $(CFLAGS) $@ $< //不加-fno-stack-protector编译器蜜汁优化？to be continued
+
 
 $(BUILD_DIR)/buildin_cmd.o: shell/buildin_cmd.c
 	$(CC) -m32 -W -Wall $(LIB) -c -fno-builtin -fno-stack-protector -o $@ $<
